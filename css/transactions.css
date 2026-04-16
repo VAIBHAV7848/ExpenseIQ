@@ -1,0 +1,108 @@
+/* ========================================
+   ExpenseIQ — Transactions Page
+   ======================================== */
+.transactions-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: var(--space-5);
+}
+.filter-date { width: 140px; }
+.filter-category { width: 160px; }
+
+.transactions-filters {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+.filters-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.filters-row .form-input,
+.filters-row .form-select {
+  height: 40px;
+  font-size: var(--text-sm);
+  border-radius: var(--radius-lg);
+}
+.filter-search {
+  flex: 1;
+  min-width: 180px;
+  position: relative;
+}
+.filter-search input {
+  padding-left: 38px;
+}
+.filter-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.filter-search-icon svg { width: 16px; height: 16px; }
+.filter-date, .filter-category {
+  min-width: 150px;
+}
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+.summary-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-3) var(--space-5);
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-5);
+  font-size: var(--text-sm);
+}
+.summary-bar-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+}
+.summary-bar-item strong {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.transactions-list-container {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+}
+.load-more-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  width: 100%;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--accent-primary);
+  transition: all var(--transition-base);
+}
+.load-more-btn:hover { background: var(--glass-bg); }
+@media (max-width: 768px) {
+  .transactions-header { flex-direction: column; gap: var(--space-3); align-items: stretch; }
+  .transactions-header .btn { width: 100%; }
+  .filters-row { flex-direction: column; align-items: stretch; }
+  .filter-search { min-width: 100%; width: 100%; }
+  .filters-row .form-select,
+  .filters-row .form-input { width: 100% !important; min-width: 100%; }
+  .filters-row > span { text-align: center; }
+  .summary-bar { flex-wrap: wrap; gap: var(--space-3); justify-content: center; font-size: var(--text-xs); }
+  .summary-bar-item:last-child { margin-left: 0; width: 100%; text-align: center; }
+}
