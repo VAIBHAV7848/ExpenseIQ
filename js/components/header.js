@@ -50,7 +50,6 @@ const Header = {
       </div>
     `;
 
-    document.getElementById('header').innerHTML = html;
     if (window.lucide) lucide.createIcons();
 
     this.renderUserProfile();
