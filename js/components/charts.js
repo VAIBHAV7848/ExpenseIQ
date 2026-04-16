@@ -122,11 +122,30 @@ const Charts = {
           if (!chartArea) return;
           const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
           const color = ds.borderColor;
-          gradient.addColorStop(0, color.replace(')', ', 0)').replace('rgb', 'rgba'));
-          gradient.addColorStop(1, color.replace(')', ', 0.3)').replace('rgb', 'rgba'));
+          // Support for both hex and hsl if we switch later
+          const baseColor = color.startsWith('#') ? color : color;
+          gradient.addColorStop(0, 'rgba(99, 102, 241, 0)');
+          gradient.addColorStop(1, color.replace(')', ', 0.2)').replace('rgb', 'rgba').replace('#', 'rgba(')); 
+          // Note: the above string manipulation is fragile, simplifying to fixed colors for safety or better mapping
+          if (color === '#10b981') {
+            gradient.addColorStop(0, 'rgba(16, 185, 129, 0)');
+            gradient.addColorStop(1, 'rgba(16, 185, 129, 0.2)');
+          } else if (color === '#ef4444') {
+            gradient.addColorStop(0, 'rgba(239, 68, 68, 0)');
+            gradient.addColorStop(1, 'rgba(239, 68, 68, 0.2)');
+          } else {
+            gradient.addColorStop(0, 'rgba(99, 102, 241, 0)');
+            gradient.addColorStop(1, 'rgba(99, 102, 241, 0.2)');
+          }
           return gradient;
         };
       }
+      ds.pointBackgroundColor = ds.borderColor;
+      ds.pointBorderColor = '#fff';
+      ds.pointBorderWidth = 2;
+      ds.pointRadius = 0;
+      ds.pointHoverRadius = 6;
+      ds.pointHoverBorderWidth = 3;
     });
 
     this.instances[id] = new Chart(ctx, { type: 'line', data: { labels, datasets }, options });

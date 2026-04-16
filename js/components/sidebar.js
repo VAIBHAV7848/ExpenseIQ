@@ -58,6 +58,9 @@ const Sidebar = {
           <span>Settings</span>
         </a>
       </div>
+      <div class="sidebar-user-section" id="sidebar-user-profile">
+        <!-- Rendered by JS -->
+      </div>
       <div class="sidebar-footer">
         <button class="sidebar-add-btn" id="sidebar-add-btn">
           <i data-lucide="plus"></i>
@@ -65,6 +68,8 @@ const Sidebar = {
         </button>
       </div>
     `;
+
+    this.renderUserProfile();
 
     // Render mobile bottom nav
     if (!document.getElementById('bottom-nav')) {
@@ -126,5 +131,47 @@ const Sidebar = {
         if(item.dataset.route) item.classList.toggle('active', item.dataset.route === Router.currentRoute);
       });
     }
+  },
+
+  renderUserProfile() {
+    const profileEl = document.getElementById('sidebar-user-profile');
+    if (!profileEl) return;
+
+    if (Auth.isAuthenticated()) {
+      const user = Auth.getUser();
+      const avatarUrl = user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.email || 'User')}&background=0D8ABC&color=fff`;
+      
+      profileEl.innerHTML = `
+        <div class="sidebar-user-card" onclick="location.hash='#/settings'">
+          <div class="user-avatar-wrap">
+            <img src="${avatarUrl}" alt="Avatar">
+          </div>
+          <div class="user-info">
+            <div class="user-name">${Utils.escapeHtml(user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User')}</div>
+            <div class="user-status">Online Sync</div>
+          </div>
+          <button class="sidebar-logout" onclick="Auth.signOut()" title="Sign Out">
+            <i data-lucide="log-out"></i>
+          </button>
+        </div>
+      `;
+    } else {
+      profileEl.innerHTML = `
+        <div class="sidebar-user-card" onclick="location.hash='#/login'">
+          <div class="user-avatar-wrap guest">
+            <i data-lucide="user"></i>
+          </div>
+          <div class="user-info">
+            <div class="user-name">Guest User</div>
+            <div class="user-status">Local Only</div>
+          </div>
+          <button class="sidebar-logout" title="Sign In">
+            <i data-lucide="log-in"></i>
+          </button>
+        </div>
+      `;
+    }
+    if (window.lucide) lucide.createIcons();
   }
 };
+
