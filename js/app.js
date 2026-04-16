@@ -3,9 +3,9 @@
    ======================================== */
 
 const App = {
-  init() {
-    // 1. Init store (sets up defaults if first run)
-    Store.init();
+  async init() {
+    // 1. Init store (sets up defaults and attempts Supabase sync)
+    await Store.init();
 
     // 2. Set theme
     const settings = Store.getSettings();
