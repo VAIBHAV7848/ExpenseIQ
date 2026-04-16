@@ -44,11 +44,52 @@ const Header = {
         <button class="theme-toggle" id="theme-toggle" title="Toggle Theme">
           <i data-lucide="${settings.theme === 'dark' ? 'sun' : 'moon'}"></i>
         </button>
+        
+        <div class="user-profile" id="header-user-profile">
+        <!-- Rendered by JS -->
       </div>
     `;
 
+    document.getElementById('header').innerHTML = html;
     if (window.lucide) lucide.createIcons();
 
+    this.renderUserProfile();
+    this.bindEvents();
+  },
+
+  renderUserProfile() {
+    const profileEl = document.getElementById('header-user-profile');
+    if (!profileEl) return;
+
+    if (Auth.isAuthenticated()) {
+      const user = Auth.getUser();
+      const avatarUrl = user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.email || 'User')}&background=0D8ABC&color=fff`;
+      profileEl.innerHTML = `
+        <div style="display:flex; align-items:center; gap:var(--space-2); cursor:pointer;" onclick="Auth.signOut()" title="Sign Out">
+          <img src="${avatarUrl}" alt="Profile" class="avatar" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+          <div class="user-info hide-on-mobile" style="display:flex; flex-direction:column;">
+            <span style="font-size:var(--text-xs); font-weight:600;">${Utils.escapeHtml(user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User')}</span>
+            <span style="font-size:10px; color:var(--text-muted);">Sign Out</span>
+          </div>
+        </div>
+      `;
+    } else {
+      profileEl.innerHTML = `
+        <div style="display:flex; align-items:center; gap:var(--space-2); cursor:pointer;" onclick="Auth.signOut()" title="Sign In">
+          <div class="avatar" style="width:36px; height:36px; border-radius:50%; background:var(--glass-bg); display:flex; align-items:center; justify-content:center;">
+             <i data-lucide="user"></i>
+          </div>
+          <div class="user-info hide-on-mobile" style="display:flex; flex-direction:column;">
+            <span style="font-size:var(--text-xs); font-weight:600;">Guest User</span>
+            <span style="font-size:10px; color:var(--text-muted);">Sign In</span>
+          </div>
+        </div>
+      `;
+      if (window.lucide) lucide.createIcons();
+    }
+  },
+
+  bindEvents() {
     // Setup Theme Toggle
     document.getElementById('theme-toggle').addEventListener('click', () => {
       const currentTheme = document.documentElement.getAttribute('data-theme');
