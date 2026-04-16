@@ -112,7 +112,7 @@ const Settings = {
           .pdf-container {
             font-family: 'Inter', sans-serif;
             color: #1e293b;
-            padding: 40px;
+            padding: 15px 40px 40px 40px;
             background: #ffffff;
             box-sizing: border-box;
           }
@@ -121,8 +121,8 @@ const Settings = {
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
           }
           .pdf-brand {
             display: flex;
