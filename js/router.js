@@ -34,6 +34,21 @@ const Router = {
         location.hash = '#/login';
         return;
       }
+      
+      // Ensure app shell is rendered if we bypassed the initial boot block
+      if (window.Sidebar && document.getElementById('sidebar').innerHTML.trim() === '') {
+        Sidebar.render();
+      }
+      if (window.Header && document.getElementById('header').innerHTML.trim() === '') {
+        Header.render();
+      }
+      
+      const appWrap = document.getElementById('app');
+      if (appWrap) appWrap.style.display = 'flex';
+      
+      const loginWrap = document.getElementById('login-wrapper');
+      if (loginWrap) loginWrap.style.display = 'none';
+      
     } else {
       if (Auth.isAuthenticated() || Auth.isGuest()) {
         location.hash = '#/';
