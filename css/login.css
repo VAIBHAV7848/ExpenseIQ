@@ -1,0 +1,151 @@
+/* ========================================
+   ExpenseIQ — Login Page Styles
+   ======================================== */
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-4);
+}
+
+.login-page::before {
+  content: '';
+  position: absolute;
+  top: -20vh;
+  left: -10vw;
+  width: 60vw;
+  height: 60vh;
+  background: radial-gradient(circle, var(--accent-primary-glow) 0%, transparent 70%);
+  opacity: 0.15;
+  filter: blur(80px);
+  z-index: 0;
+  animation: pulseGlow 8s ease-in-out infinite alternate;
+}
+
+.login-page::after {
+  content: '';
+  position: absolute;
+  bottom: -20vh;
+  right: -10vw;
+  width: 50vw;
+  height: 50vh;
+  background: radial-gradient(circle, var(--color-income-glow) 0%, transparent 70%);
+  opacity: 0.1;
+  filter: blur(80px);
+  z-index: 0;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 440px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-8);
+  box-shadow: var(--shadow-xl);
+  z-index: 1;
+  animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1) forwards;
+  text-align: center;
+}
+
+.login-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-4);
+  font-size: 32px;
+  box-shadow: var(--shadow-md);
+}
+
+.login-title {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.login-subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-8);
+}
+
+.login-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.btn-google {
+  background: #ffffff;
+  color: #333333;
+  width: 100%;
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  transition: all var(--transition-base);
+  border: 1px solid transparent;
+}
+
+.btn-google:hover {
+  background: #f8f9fa;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.btn-google svg {
+  width: 20px;
+  height: 20px;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  margin: var(--space-4) 0;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.login-divider::not(:empty)::before {
+  margin-right: .5em;
+}
+
+.login-divider::not(:empty)::after {
+  margin-left: .5em;
+}
+
+.btn-guest {
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+  width: 100%;
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+}
+
+.btn-guest:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--glass-border-hover);
+}

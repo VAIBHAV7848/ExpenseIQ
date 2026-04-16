@@ -27,10 +27,24 @@ const Router = {
 
   _handleRoute() {
     const hash = location.hash || '#/';
+
+    // --- Route Guard ---
+    if (hash !== '#/login') {
+      if (!Auth.isAuthenticated() && !Auth.isGuest()) {
+        location.hash = '#/login';
+        return;
+      }
+    } else {
+      if (Auth.isAuthenticated() || Auth.isGuest()) {
+        location.hash = '#/';
+        return;
+      }
+    }
+
     const handler = this.routes[hash];
     if (!handler) {
-      // 404 — redirect to dashboard
-      location.hash = '#/';
+      // 404 — redirect to dashboard or login
+      location.hash = (Auth.isAuthenticated() || Auth.isGuest()) ? '#/' : '#/login';
       return;
     }
 

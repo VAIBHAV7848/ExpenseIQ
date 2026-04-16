@@ -4,6 +4,9 @@
 
 const App = {
   async init() {
+    // 0. Initialize Auth (resolves current session or guest flag)
+    await Auth.init();
+
     // 1. Init store (sets up defaults and attempts Supabase sync)
     await Store.init();
 
@@ -11,15 +14,8 @@ const App = {
     const settings = Store.getSettings();
     document.documentElement.setAttribute('data-theme', settings.theme);
 
-    // 3. Render shell components
-    Sidebar.render();
-    Header.render();
-    Modal.init();
-
-    // 4. Setup global events
-    this.setupGlobalEvents();
-
-    // 5. Setup Routes
+    // 3. Setup Routes
+    Router.addRoute('#/login', Login.render.bind(Login));
     Router.addRoute('#/', Dashboard.render.bind(Dashboard));
     Router.addRoute('#/transactions', Transactions.render.bind(Transactions));
     Router.addRoute('#/reports', Reports.render.bind(Reports));
@@ -27,11 +23,23 @@ const App = {
     Router.addRoute('#/categories', Categories.render.bind(Categories));
     Router.addRoute('#/settings', Settings.render.bind(Settings));
 
+    // 4. Render shell components if not on login page initially
+    // The router will handle hiding/showing these later, but for initial boot:
+    if (location.hash !== '#/login' && (Auth.isAuthenticated() || Auth.isGuest())) {
+      Sidebar.render();
+      Header.render();
+      Modal.init();
+      // Check budget alerts on load (debounce)
+      setTimeout(() => this.checkInitialAlerts(), 1000);
+    } else {
+      Modal.init();
+    }
+
+    // 5. Setup global events
+    this.setupGlobalEvents();
+
     // 6. Start Router
     Router.init();
-
-    // Check budget alerts on load (debounce)
-    setTimeout(() => this.checkInitialAlerts(), 1000);
   },
 
   setupGlobalEvents() {

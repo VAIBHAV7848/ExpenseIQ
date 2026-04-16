@@ -47,14 +47,18 @@ const Store = {
       this._state.settings = this._getFromLocal(this.KEYS.SETTINGS) || this.defaultSettings();
     }
 
-    // 2. If Supabase is connected, fetch the real remote data to override local cache
-    if (this.sb) {
+    // 2. If Supabase is connected AND user is logged in, fetch from remote
+    if (this.sb && !Auth.isGuest() && Auth.isAuthenticated()) {
       try {
         console.log("Syncing from Supabase...");
         
         // Fetch Categories
         const { data: cats, error: catErr } = await this.sb.from('categories').select('*');
-        if (!catErr && cats.length > 0) this._saveToBoth(this.KEYS.CATEGORIES, cats, 'categories');
+        if (!catErr && cats.length > 0) {
+          // Merge defaults with custom properly for local UI
+          const allCats = [...ALL_DEFAULT_CATEGORIES, ...cats.filter(c => !c.isDefault)];
+          this._saveToBoth(this.KEYS.CATEGORIES, allCats, 'categories');
+        }
 
         // Fetch Transactions
         const { data: txns, error: txnErr } = await this.sb.from('transactions').select('*');
@@ -127,7 +131,7 @@ const Store = {
     EventBus.emit('transaction:added', txn);
 
     // Background Sync
-    if (this.sb) {
+    if (this.sb && !Auth.isGuest()) {
       this.sb.from('transactions').insert([txn]).then(({error}) => {
         if (error) console.error("Supabase Error (Insert Txn):", error);
       });
@@ -143,12 +147,11 @@ const Store = {
     
     txns[idx] = { ...txns[idx], ...data, updatedAt: new Date().toISOString() };
     
-    // Optimistic Update
     this._saveToBoth(this.KEYS.TRANSACTIONS, txns, 'transactions');
     EventBus.emit('transaction:updated', txns[idx]);
 
     // Background Sync
-    if (this.sb) {
+    if (this.sb && !Auth.isGuest()) {
       this.sb.from('transactions').update(txns[idx]).eq('id', id).then(({error}) => {
         if (error) console.error("Supabase Error (Update Txn):", error);
       });
@@ -164,12 +167,10 @@ const Store = {
     
     const removed = txns.splice(idx, 1)[0];
     
-    // Optimistic Update
     this._saveToBoth(this.KEYS.TRANSACTIONS, txns, 'transactions');
     EventBus.emit('transaction:deleted', removed);
 
-    // Background Sync
-    if (this.sb) {
+    if (this.sb && !Auth.isGuest()) {
       this.sb.from('transactions').delete().eq('id', id).then(({error}) => {
         if (error) console.error("Supabase Error (Delete Txn):", error);
       });
@@ -183,7 +184,7 @@ const Store = {
     this._saveToBoth(this.KEYS.TRANSACTIONS, txns, 'transactions');
     EventBus.emit('transaction:added', txn);
 
-    if (this.sb) {
+    if (this.sb && !Auth.isGuest()) {
       this.sb.from('transactions').insert([txn]).then(({error}) => {
         if (error) console.error("Supabase Error (Restore Txn):", error);
       });
@@ -265,12 +266,10 @@ const Store = {
       budgets.push(targetBudget); 
     }
     
-    // Optimistic Update
     this._saveToBoth(this.KEYS.BUDGETS, budgets, 'budgets');
     EventBus.emit('budget:updated', targetBudget);
 
-    // Background Sync (Upsert based on month/id)
-    if (this.sb) {
+    if (this.sb && !Auth.isGuest()) {
       this.sb.from('budgets').upsert([targetBudget], { onConflict: 'id' }).then(({error}) => {
         if (error) console.error("Supabase Error (Upsert Budget):", error);
       });
@@ -345,11 +344,9 @@ const Store = {
     const cat = { id: Utils.generateId('cat'), isDefault: false, ...data };
     cats.push(cat);
     
-    // Optimistic Update
     this._saveToBoth(this.KEYS.CATEGORIES, cats, 'categories');
 
-    // Background Sync
-    if (this.sb) {
+    if (this.sb && !Auth.isGuest()) {
       this.sb.from('categories').insert([cat]).then(({error}) => {
         if (error) console.error("Supabase Error (Insert Category):", error);
       });
@@ -364,11 +361,9 @@ const Store = {
     if (idx === -1) return null;
     cats[idx] = { ...cats[idx], ...data };
     
-    // Optimistic Update
     this._saveToBoth(this.KEYS.CATEGORIES, cats, 'categories');
 
-    // Background Sync
-    if (this.sb) {
+    if (this.sb && !Auth.isGuest()) {
       this.sb.from('categories').update(cats[idx]).eq('id', id).then(({error}) => {
         if (error) console.error("Supabase Error (Update Category):", error);
       });
@@ -385,11 +380,9 @@ const Store = {
     
     const removed = cats.splice(idx, 1)[0];
     
-    // Optimistic Update
     this._saveToBoth(this.KEYS.CATEGORIES, cats, 'categories');
 
-    // Background Sync
-    if (this.sb) {
+    if (this.sb && !Auth.isGuest()) {
       this.sb.from('categories').delete().eq('id', id).then(({error}) => {
         if (error) console.error("Supabase Error (Delete Category):", error);
       });
@@ -419,7 +412,7 @@ const Store = {
   },
 
   importData(json) {
-    // Keep it simple, just save to local storage for now to trigger app reload logic later
+    // Basic import logic, in production you'd merge and push
   },
 
   loadDemoData() {
@@ -437,10 +430,8 @@ const Store = {
     });
     this._saveToBoth(this.KEYS.BUDGETS, existingBudgets, 'budgets');
 
-    // Also sync up demo data to Supabase if connected
-    if (this.sb) {
+    if (this.sb && !Auth.isGuest()) {
       console.log("Pushing demo data to Supabase...");
-      // In a real prod environment you might run into batch limits, but 50 rows is fine
       this.sb.from('transactions').upsert(toAdd, {onConflict:'id'}).then(()=>{});
       this.sb.from('budgets').upsert(SAMPLE_BUDGETS, {onConflict:'id'}).then(()=>{});
     }
@@ -448,9 +439,6 @@ const Store = {
 
   clearAll() {
     Object.values(this.KEYS).forEach(k => localStorage.removeItem(k));
-    // If Supabase is attached, we typically wouldn't clear the global database! 
-    // Usually "Reset App" would mean log out or clear local cache.
-    // For safety, we only clear localStorage here.
   }
 };
 
