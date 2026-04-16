@@ -99,57 +99,220 @@ const Settings = {
       Store.updateSettings(s);
     });
 
-    // Data Management (PDF Export)
+    // Data Management (Premium PDF Export)
     document.getElementById('btn-export').addEventListener('click', () => {
       const txns = Store.getTransactions({ sortOrder: 'asc' });
       const totals = Store.getTotals();
+      const settings = Store.getSettings();
       
       const element = document.createElement('div');
-      element.style.padding = '20px';
-      element.style.fontFamily = 'Inter, sans-serif';
       element.innerHTML = `
-        <h1 style="color: #333; margin-bottom: 5px;">ExpenseIQ — Full Data Export</h1>
-        <p style="color: #666; margin-bottom: 20px;">Generated on ${new Date().toLocaleString()}</p>
-        
-        <h2 style="margin-top: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Summary</h2>
-        <p><strong>Total Income:</strong> ${Store.getSettings().currencySymbol}${totals.income.toFixed(2)}</p>
-        <p><strong>Total Expense:</strong> ${Store.getSettings().currencySymbol}${totals.expense.toFixed(2)}</p>
-        <p><strong>Net Balance:</strong> ${Store.getSettings().currencySymbol}${totals.balance.toFixed(2)}</p>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+          .pdf-container {
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+            padding: 40px;
+            background: #ffffff;
+            box-sizing: border-box;
+          }
+          .pdf-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .pdf-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          }
+          .pdf-logo {
+            width: 48px;
+            height: 48px;
+            background: #0f172a;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+          }
+          .pdf-title-container h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+          }
+          .pdf-title-container p {
+            margin: 4px 0 0 0;
+            font-size: 14px;
+            color: #64748b;
+          }
+          .pdf-meta {
+            text-align: right;
+            font-size: 13px;
+            color: #64748b;
+          }
+          .pdf-summary-cards {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 40px;
+          }
+          .pdf-card {
+            flex: 1;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+          }
+          .pdf-card-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 8px;
+          }
+          .pdf-card-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0f172a;
+          }
+          .pdf-card-value.income { color: #10b981; }
+          .pdf-card-value.expense { color: #ef4444; }
+          .pdf-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+          }
+          .pdf-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 14px;
+          }
+          .pdf-table th {
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 2px solid #cbd5e1;
+          }
+          .pdf-table th:first-child { border-top-left-radius: 8px; }
+          .pdf-table th:last-child { border-top-right-radius: 8px; }
+          .pdf-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+          }
+          .pdf-table tr:last-child td { border-bottom: none; }
+          .pdf-type-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+          }
+          .pdf-type-badge.income {
+            background: #d1fae5;
+            color: #059669;
+          }
+          .pdf-type-badge.expense {
+            background: #fee2e2;
+            color: #dc2626;
+          }
+          .pdf-footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 20px;
+          }
+        </style>
+        <div class="pdf-container">
+          <div class="pdf-header">
+            <div class="pdf-brand">
+              <div class="pdf-logo">💰</div>
+              <div class="pdf-title-container">
+                <h1>ExpenseIQ</h1>
+                <p>Comprehensive Financial Report</p>
+              </div>
+            </div>
+            <div class="pdf-meta">
+              <div><strong>Generated:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+              <div><strong>Currency:</strong> ${settings.currency} (${settings.currencySymbol})</div>
+            </div>
+          </div>
 
-        <h2 style="margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Transactions (${txns.length})</h2>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-          <thead>
-            <tr style="background: #f1f5f9; text-align: left;">
-              <th style="padding: 10px; border: 1px solid #ddd;">Date</th>
-              <th style="padding: 10px; border: 1px solid #ddd;">Description</th>
-              <th style="padding: 10px; border: 1px solid #ddd;">Type</th>
-              <th style="padding: 10px; border: 1px solid #ddd;">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${txns.map(t => `
+          <div class="pdf-summary-cards">
+            <div class="pdf-card">
+              <div class="pdf-card-title">Total Income</div>
+              <div class="pdf-card-value income">${settings.currencySymbol}${totals.income.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="pdf-card">
+              <div class="pdf-card-title">Total Expense</div>
+              <div class="pdf-card-value expense">${settings.currencySymbol}${totals.expense.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="pdf-card">
+              <div class="pdf-card-title">Net Balance</div>
+              <div class="pdf-card-value">${settings.currencySymbol}${totals.balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+          </div>
+
+          <h2 class="pdf-section-title">Transaction History</h2>
+          <table class="pdf-table">
+            <thead>
               <tr>
-                <td style="padding: 10px; border: 1px solid #ddd;">${Utils.formatDate(t.date, 'short')}</td>
-                <td style="padding: 10px; border: 1px solid #ddd;">${Utils.escapeHtml(t.description)}</td>
-                <td style="padding: 10px; border: 1px solid #ddd; color: ${t.type === 'income' ? 'green' : 'red'};">${t.type.toUpperCase()}</td>
-                <td style="padding: 10px; border: 1px solid #ddd;">${Store.getSettings().currencySymbol}${t.amount.toFixed(2)}</td>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Type</th>
+                <th style="text-align: right;">Amount</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              ${txns.map(t => {
+                const catInfo = Store.getCategory(t.category) || { name: 'Unknown' };
+                return `
+                <tr>
+                  <td style="color: #64748b; white-space: nowrap;">${Utils.formatDate(t.date, 'short')}</td>
+                  <td style="font-weight: 500;">${Utils.escapeHtml(t.description)}</td>
+                  <td style="color: #64748b;">${catInfo.name}</td>
+                  <td><span class="pdf-type-badge ${t.type}">${t.type}</span></td>
+                  <td style="text-align: right; font-weight: 600; font-family: 'JetBrains Mono', monospace;">${settings.currencySymbol}${t.amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                </tr>
+              `}).join('')}
+            </tbody>
+          </table>
+          
+          <div class="pdf-footer">
+            Generated securely by ExpenseIQ Tracker &bull; expense-iq-gold.vercel.app
+          </div>
+        </div>
       `;
 
       const opt = {
-        margin:       0.5,
+        margin:       [0, 0, 0, 0], // CSS handles margins
         filename:     'ExpenseIQ_Report.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        image:        { type: 'jpeg', quality: 1 },
+        html2canvas:  { scale: 3, useCORS: true, logging: false },
+        jsPDF:        { unit: 'pt', format: 'a4', orientation: 'portrait' }
       };
 
-      Toast.success('Exporting...', 'Generating your PDF report...', 2000);
+      Toast.success('Exporting...', 'Generating your premium PDF...', 2000);
       html2pdf().set(opt).from(element).save().then(() => {
-        Toast.success('Export Complete', 'Your PDF has been downloaded.');
+        Toast.success('Export Complete', 'Your report has been downloaded.');
       }).catch(err => {
         console.error(err);
         Toast.error('Export Failed', 'Unable to generate PDF.');
