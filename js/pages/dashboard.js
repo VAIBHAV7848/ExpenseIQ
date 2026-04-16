@@ -24,7 +24,7 @@ const Dashboard = {
           <div class="stat-card-label">Total Balance</div>
         </div>
         
-        <div class="stat-card income">
+        <div class="stat-card income glow-on-hover">
           <div class="stat-card-top">
             <div class="stat-card-icon income"><i data-lucide="trending-up"></i></div>
             <div class="stat-card-trend ${trendInc.direction}">
@@ -33,9 +33,12 @@ const Dashboard = {
           </div>
           <div class="stat-card-amount text-income" id="st-inc">0</div>
           <div class="stat-card-label">Income This Month</div>
+          <button class="stat-card-action" onclick="window.showAddTransactionModal('income')" title="Add Income">
+            <i data-lucide="plus"></i>
+          </button>
         </div>
 
-        <div class="stat-card expense">
+        <div class="stat-card expense glow-on-hover">
           <div class="stat-card-top">
             <div class="stat-card-icon expense"><i data-lucide="trending-down"></i></div>
             <div class="stat-card-trend ${trendExp.direction}">
@@ -44,6 +47,9 @@ const Dashboard = {
           </div>
           <div class="stat-card-amount text-expense" id="st-exp">0</div>
           <div class="stat-card-label">Expenses This Month</div>
+          <button class="stat-card-action" onclick="window.showAddTransactionModal('expense')" title="Add Expense">
+            <i data-lucide="plus"></i>
+          </button>
         </div>
 
         <div class="stat-card savings">
