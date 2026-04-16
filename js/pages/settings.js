@@ -40,11 +40,11 @@ const Settings = {
         <h3 class="settings-section-title"><i data-lucide="database"></i> Data Management</h3>
         <div class="settings-row">
           <div>
-            <div class="settings-row-label">Export Data</div>
-            <div class="settings-row-desc">Download a JSON copy of all your data.</div>
+            <div class="settings-row-label">Export Data (PDF)</div>
+            <div class="settings-row-desc">Download a PDF copy of all your financial data.</div>
           </div>
           <div class="settings-row-control">
-             <button class="btn btn-secondary btn-sm" id="btn-export">Download</button>
+             <button class="btn btn-secondary btn-sm" id="btn-export">Export PDF</button>
           </div>
         </div>
         
@@ -99,17 +99,61 @@ const Settings = {
       Store.updateSettings(s);
     });
 
-    // Data Management
+    // Data Management (PDF Export)
     document.getElementById('btn-export').addEventListener('click', () => {
-      const payload = Store.exportData();
-      const blob = new Blob([payload], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `ExpenseIQ_Full_Backup.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      Toast.success('Export Complete', 'Your data backup is ready.');
+      const txns = Store.getTransactions({ sortOrder: 'asc' });
+      const totals = Store.getTotals();
+      
+      const element = document.createElement('div');
+      element.style.padding = '20px';
+      element.style.fontFamily = 'Inter, sans-serif';
+      element.innerHTML = `
+        <h1 style="color: #333; margin-bottom: 5px;">ExpenseIQ — Full Data Export</h1>
+        <p style="color: #666; margin-bottom: 20px;">Generated on ${new Date().toLocaleString()}</p>
+        
+        <h2 style="margin-top: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Summary</h2>
+        <p><strong>Total Income:</strong> ${Store.getSettings().currencySymbol}${totals.income.toFixed(2)}</p>
+        <p><strong>Total Expense:</strong> ${Store.getSettings().currencySymbol}${totals.expense.toFixed(2)}</p>
+        <p><strong>Net Balance:</strong> ${Store.getSettings().currencySymbol}${totals.balance.toFixed(2)}</p>
+
+        <h2 style="margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Transactions (${txns.length})</h2>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+          <thead>
+            <tr style="background: #f1f5f9; text-align: left;">
+              <th style="padding: 10px; border: 1px solid #ddd;">Date</th>
+              <th style="padding: 10px; border: 1px solid #ddd;">Description</th>
+              <th style="padding: 10px; border: 1px solid #ddd;">Type</th>
+              <th style="padding: 10px; border: 1px solid #ddd;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${txns.map(t => `
+              <tr>
+                <td style="padding: 10px; border: 1px solid #ddd;">${Utils.formatDate(t.date, 'short')}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${Utils.escapeHtml(t.description)}</td>
+                <td style="padding: 10px; border: 1px solid #ddd; color: ${t.type === 'income' ? 'green' : 'red'};">${t.type.toUpperCase()}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${Store.getSettings().currencySymbol}${t.amount.toFixed(2)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      const opt = {
+        margin:       0.5,
+        filename:     'ExpenseIQ_Report.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+
+      Toast.success('Exporting...', 'Generating your PDF report...', 2000);
+      html2pdf().set(opt).from(element).save().then(() => {
+        Toast.success('Export Complete', 'Your PDF has been downloaded.');
+      }).catch(err => {
+        console.error(err);
+        Toast.error('Export Failed', 'Unable to generate PDF.');
+      });
     });
 
     document.getElementById('btn-demo').addEventListener('click', () => {
