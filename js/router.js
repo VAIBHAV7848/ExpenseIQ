@@ -49,10 +49,7 @@ const Router = {
       if (loginWrap) loginWrap.style.display = 'none';
 
     } else {
-      if (Auth.isAuthenticated() || Auth.isGuest()) {
-        location.hash = '#/';
-        return;
-      }
+      // Going to login — always allow it (signOut clears guest state first)
     }
 
     const handler = this.routes[hash];
