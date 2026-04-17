@@ -7,12 +7,29 @@ const Dashboard = {
     const content = document.getElementById('page-content');
     const month = Utils.toMonthString(new Date());
     const totals = Store.getTotals(month);
-    const balanceAll = Store.getTotals().balance; // All time balance
-    
+    const balanceAll = Store.getTotals().balance;
+
     const trendInc = Utils.calcTrend(totals.income, Store.getTotals(Utils.toMonthString(new Date(new Date().setMonth(new Date().getMonth()-1)))).income);
     const trendExp = Utils.calcTrend(totals.expense, Store.getTotals(Utils.toMonthString(new Date(new Date().setMonth(new Date().getMonth()-1)))).expense);
-    
+
     const savRate = Utils.percentage(totals.balance, totals.income) || 0;
+
+    // Financial Health Score (simple scoring)
+    let healthScore = 50;
+    if (savRate > 30) healthScore += 20;
+    else if (savRate > 15) healthScore += 10;
+    else if (savRate < 0) healthScore -= 20;
+    const budgetStatus = Store.getBudgetStatus(month);
+    if (budgetStatus) {
+      if (budgetStatus.totalPct < 80) healthScore += 15;
+      else if (budgetStatus.totalPct > 100) healthScore -= 15;
+    }
+    healthScore = Math.max(0, Math.min(100, healthScore));
+    let healthLabel = 'Needs Work';
+    let healthColor = '#ef4444';
+    if (healthScore >= 80) { healthLabel = 'Excellent'; healthColor = '#10b981'; }
+    else if (healthScore >= 60) { healthLabel = 'Good'; healthColor = '#f59e0b'; }
+    else if (healthScore >= 40) { healthLabel = 'Fair'; healthColor = '#f97316'; }
 
     content.innerHTML = `
       <div class="dashboard-stats stagger-children" id="dash-stats">
@@ -23,7 +40,7 @@ const Dashboard = {
           <div class="stat-card-amount" id="st-bal">0</div>
           <div class="stat-card-label">Total Balance</div>
         </div>
-        
+
         <div class="stat-card income glow-on-hover">
           <div class="stat-card-top">
             <div class="stat-card-icon income"><i data-lucide="trending-up"></i></div>
@@ -61,6 +78,33 @@ const Dashboard = {
         </div>
       </div>
 
+      <!-- Financial Health Score -->
+      <div class="dashboard-health-row animate-fade-in-up" style="animation-delay:100ms">
+        <div class="health-score-card">
+          <div class="health-gauge">
+            <svg viewBox="0 0 120 65" class="health-svg">
+              <path d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke="var(--glass-border)" stroke-width="10" stroke-linecap="round"/>
+              <path d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke="${healthColor}" stroke-width="10" stroke-linecap="round"
+                stroke-dasharray="${healthScore * 1.57} 157" class="health-arc"/>
+            </svg>
+            <div class="health-score-value">${healthScore}</div>
+          </div>
+          <div class="health-label" style="color:${healthColor}">${healthLabel}</div>
+          <div class="health-sublabel">Financial Health Score</div>
+        </div>
+
+        <div class="ai-insights-card" id="ai-insights-card">
+          <div class="card-header">
+            <h3 class="card-title"><span style="font-size:16px;">✨</span> AI Insights</h3>
+          </div>
+          <div id="ai-insights-content" class="ai-insights-content">
+            <div class="text-muted" style="padding:16px; font-size:14px;">
+              ${AI.isAvailable() ? 'Loading insights...' : 'Enable Groq API key in config.js for AI insights.'}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="dashboard-charts stagger-children">
         <div class="chart-card">
           <div class="card-header">
@@ -73,7 +117,7 @@ const Dashboard = {
             <canvas id="trendChart"></canvas>
           </div>
         </div>
-        
+
         <div class="chart-card">
           <div class="card-header">
             <h3 class="card-title">Top Categories</h3>
@@ -90,26 +134,21 @@ const Dashboard = {
             <h3 class="card-title">Recent Transactions</h3>
             <a href="#/transactions" class="section-link">View All <i data-lucide="chevron-right"></i></a>
           </div>
-          <div class="recent-transactions-list" id="recent-list">
-            <!-- Filled dynamically -->
-          </div>
+          <div class="recent-transactions-list" id="recent-list"></div>
         </div>
-        
+
         <div class="budget-overview-card">
           <div class="card-header">
             <h3 class="card-title">Budgets</h3>
             <a href="#/budgets" class="section-link"><i data-lucide="chevron-right"></i></a>
           </div>
-          <div id="budget-mini-list">
-            <!-- Filled dynamically -->
-          </div>
+          <div id="budget-mini-list"></div>
         </div>
       </div>
     `;
 
     if (window.lucide) lucide.createIcons();
 
-    // Animate stats
     Utils.animateCounter(document.getElementById('st-bal'), balanceAll);
     Utils.animateCounter(document.getElementById('st-inc'), totals.income);
     Utils.animateCounter(document.getElementById('st-exp'), totals.expense);
@@ -118,9 +157,11 @@ const Dashboard = {
     this.renderCharts();
     this.renderRecentTransactions();
     this.renderBudgetMini();
+    this.loadAIInsights();
   },
 
   _animateSavRate(el, target) {
+    if (!el) return;
     const start = performance.now();
     const update = (now) => {
       const p = Math.min((now - start) / 1000, 1);
@@ -131,10 +172,23 @@ const Dashboard = {
     requestAnimationFrame(update);
   },
 
+  async loadAIInsights() {
+    if (!AI.isAvailable()) return;
+    const container = document.getElementById('ai-insights-content');
+    if (!container) return;
+
+    const insights = await AI.getSmartInsights();
+    if (insights && insights.length > 0) {
+      container.innerHTML = insights.map(i =>
+        '<div class="ai-insight-item"><span class="ai-insight-icon">💡</span><span>' + Utils.escapeHtml(i) + '</span></div>'
+      ).join('');
+    } else {
+      container.innerHTML = '<div class="text-muted" style="padding:16px; font-size:14px;">Not enough data for insights yet.</div>';
+    }
+  },
+
   renderCharts() {
     const month = Utils.toMonthString(new Date());
-    
-    // Trend Line Chart (Last 30 days demo data)
     const dailyData = Store.getDailyTotals(month);
     const labels = dailyData.map(d => d.day);
     const incData = dailyData.map(d => d.income);
@@ -145,33 +199,24 @@ const Dashboard = {
       { label: 'Expense', data: expData, borderColor: '#ef4444', tension: 0.4, fill: true }
     ]);
 
-    // Donut Chart Top 5 Categories
     const byCat = Store.getByCategory(month);
     const catArray = Object.entries(byCat).map(([id, data]) => {
       const cat = Store.getCategory(id);
       return { name: cat ? cat.name : 'Other', color: cat ? cat.color : '#cbd5e1', amount: data.expense };
     }).filter(c => c.amount > 0).sort((a,b) => b.amount - a.amount).slice(0, 5);
 
-    if (catArray.length === 0) {
-      // Empty state handler can be placed here if needed
-      return;
-    }
+    if (catArray.length === 0) return;
 
-    const dLabels = catArray.map(c => c.name);
-    const dData = catArray.map(c => c.amount);
-    const dColors = catArray.map(c => c.color);
-    
-    Charts.createDonutChart('donutChart', dLabels, dData, dColors);
+    Charts.createDonutChart('donutChart', catArray.map(c => c.name), catArray.map(c => c.amount), catArray.map(c => c.color));
   },
 
   renderRecentTransactions() {
     const txns = Store.getTransactions({ sortBy: 'date' }).slice(0, 7);
     const list = document.getElementById('recent-list');
-    
+    if (!list) return;
+
     if (txns.length === 0) {
-      list.innerHTML = `<div class="empty-state" style="padding: 40px 20px;">
-        <p class="text-muted">No recent transactions</p>
-      </div>`;
+      list.innerHTML = '<div class="empty-state" style="padding: 40px 20px;"><p class="text-muted">No recent transactions</p></div>';
       return;
     }
 
@@ -191,7 +236,7 @@ const Dashboard = {
         </div>
       `;
     }).join('');
-    
+
     if (window.lucide) lucide.createIcons();
   },
 
@@ -199,13 +244,13 @@ const Dashboard = {
     const month = Utils.toMonthString(new Date());
     const stats = Store.getBudgetStatus(month);
     const list = document.getElementById('budget-mini-list');
-    
+    if (!list) return;
+
     if (!stats || Object.keys(stats.categoryStatus).length === 0) {
-      list.innerHTML = `<div class="text-muted text-center" style="padding: 20px 0; font-size: 14px;">No budgets set for this month.</div>`;
+      list.innerHTML = '<div class="text-muted text-center" style="padding: 20px 0; font-size: 14px;">No budgets set for this month.</div>';
       return;
     }
 
-    // Get top 4 closest to limit
     const sortedCats = Object.entries(stats.categoryStatus)
       .map(([id, data]) => ({ id, ...data }))
       .sort((a, b) => b.pct - a.pct)

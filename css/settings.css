@@ -1,1 +1,32 @@
-/* Settings-only overrides (shared with categories.css) */
+/* ========================================
+   ExpenseIQ — Settings Styles
+   ======================================== */
+.settings-section {
+  background: var(--glass-bg); backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border); border-radius: var(--radius-xl);
+  padding: 24px; margin-bottom: 20px;
+}
+.settings-section-title {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 16px; font-weight: 700; margin-bottom: 16px;
+  padding-bottom: 12px; border-bottom: 1px solid var(--glass-border);
+}
+.settings-section-title svg { width: 18px; height: 18px; color: var(--accent-primary); }
+.settings-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding: 14px 0;
+}
+.settings-row + .settings-row { border-top: 1px solid var(--glass-border); }
+.settings-row-label { font-size: 14px; font-weight: 500; }
+.settings-row-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.settings-row-control { flex-shrink: 0; }
+
+.about-info { font-size: 13px; color: var(--text-secondary); line-height: 1.8; }
+
+.activity-log-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--glass-border); gap: 12px;
+}
+.activity-log-item:last-child { border-bottom: none; }
+.activity-log-msg { font-size: 13px; flex: 1; }
+.activity-log-time { font-size: 11px; color: var(--text-muted); white-space: nowrap; }

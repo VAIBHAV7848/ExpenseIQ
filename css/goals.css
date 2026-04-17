@@ -1,0 +1,51 @@
+/* ========================================
+   ExpenseIQ — Goals Page Styles
+   ======================================== */
+.goals-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.goals-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 28px; }
+
+.goals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+
+.goal-card {
+  background: var(--glass-bg); backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border); border-radius: var(--radius-xl);
+  padding: 24px; transition: all var(--transition-base); position: relative;
+  overflow: hidden;
+}
+.goal-card:hover { border-color: var(--glass-border-hover); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+.goal-card.completed { border-color: var(--color-income); }
+.goal-card.completed::before {
+  content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, transparent, rgba(16, 185, 129, 0.05));
+  pointer-events: none;
+}
+.goal-card.urgent { border-color: var(--color-warning); }
+
+.goal-card-header { display: flex; gap: 16px; margin-bottom: 20px; }
+.goal-card-icon {
+  width: 48px; height: 48px; border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center;
+  color: white; box-shadow: var(--shadow-sm); flex-shrink: 0;
+}
+.goal-card-icon svg { width: 24px; height: 24px; }
+
+.goal-card-info { flex: 1; min-width: 0; }
+.goal-card-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.goal-card-status { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-full); display: inline-block; }
+.goal-card-status.active { background: var(--bg-tertiary); color: var(--text-secondary); }
+.goal-card-status.completed { background: var(--color-income-bg); color: var(--color-income); }
+.goal-card-status.urgent { background: var(--color-warning-bg); color: var(--color-warning); }
+.goal-card-status.overdue { background: var(--color-expense-bg); color: var(--color-expense); }
+
+.goal-card-actions { display: flex; gap: 4px; }
+
+.goal-card-amounts { font-size: 24px; font-weight: 800; font-family: var(--font-mono); margin-bottom: 4px; }
+.goal-card-amounts .text-muted { font-size: 14px; font-weight: 500; }
+
+.goal-card-footer { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; font-family: var(--font-mono); color: var(--text-secondary); }
+
+@media (max-width: 768px) {
+  .goals-summary { grid-template-columns: 1fr; }
+  .goals-grid { grid-template-columns: 1fr; }
+}

@@ -4,236 +4,243 @@
 
 const App = {
   async init() {
-    // 0. Initialize Auth (resolves current session or guest flag)
+    console.log('%c ExpenseIQ v2.0 ', 'background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-size: 16px; padding: 8px 16px; border-radius: 8px; font-weight: bold;');
+
+    // 1. Apply theme
+    const savedTheme = localStorage.getItem('expenseiq_settings');
+    try {
+      const s = JSON.parse(savedTheme);
+      if (s?.theme) document.documentElement.setAttribute('data-theme', s.theme);
+    } catch (e) { /* Use default dark */ }
+
+    // 2. Init Auth
     await Auth.init();
 
-    // 1. Init store (sets up defaults and attempts Supabase sync)
+    // 3. Init Store (loads from localStorage + optionally from Supabase)
     await Store.init();
 
-    // 2. Set theme
-    const settings = Store.getSettings();
-    document.documentElement.setAttribute('data-theme', settings.theme);
+    // 4. Register routes
+    Router.addRoute('#/login', () => Login.render());
+    Router.addRoute('#/', () => Dashboard.render());
+    Router.addRoute('#/transactions', () => Transactions.render());
+    Router.addRoute('#/reports', () => Reports.render());
+    Router.addRoute('#/budgets', () => Budgets.render());
+    Router.addRoute('#/categories', () => Categories.render());
+    Router.addRoute('#/settings', () => Settings.render());
+    Router.addRoute('#/goals', () => Goals.render());
+    Router.addRoute('#/debts', () => Debts.render());
 
-    // 3. Setup Routes
-    Router.addRoute('#/login', Login.render.bind(Login));
-    Router.addRoute('#/', Dashboard.render.bind(Dashboard));
-    Router.addRoute('#/transactions', Transactions.render.bind(Transactions));
-    Router.addRoute('#/reports', Reports.render.bind(Reports));
-    Router.addRoute('#/budgets', Budgets.render.bind(Budgets));
-    Router.addRoute('#/categories', Categories.render.bind(Categories));
-    Router.addRoute('#/settings', Settings.render.bind(Settings));
+    // 5. Init Router
+    Router.init();
 
-    // 4. Render shell components if not on login page initially
-    // The router will handle hiding/showing these later, but for initial boot:
-    if (location.hash !== '#/login' && (Auth.isAuthenticated() || Auth.isGuest())) {
-      Sidebar.render();
-      Header.render();
-      Modal.init();
-      // Check budget alerts on load (debounce)
-      setTimeout(() => this.checkInitialAlerts(), 1000);
-    } else {
-      Modal.init();
+    // 6. Init Sync Engine (non-blocking)
+    try { await syncEngine.init(); } catch (e) { console.warn('SyncEngine init skipped:', e); }
+
+    // 7. Init Subscriptions
+    if (Auth.isAuthenticated()) {
+      try { await subscriptionManager.init(); } catch (e) { console.warn('Subscriptions init skipped:', e); }
     }
 
-    // 5. Setup global events
-    this.setupGlobalEvents();
+    // 8. Init AI Chat Widget
+    try { AiChat.init(); } catch (e) { console.warn('AiChat init skipped:', e); }
 
-    // 6. Start Router
-    Router.init();
+    // 9. Process recurring transactions
+    Store.processRecurring();
+
+    // 10. Global event listeners
+    this._setupGlobalEvents();
+
+    // 11. Setup transaction modal global handler
+    this._setupTransactionModal();
+
+    // 12. Init Modals
+    Modal.init();
   },
 
-  setupGlobalEvents() {
+  _setupGlobalEvents() {
+    // Re-render charts on theme change
     EventBus.on('theme:changed', () => {
-      Charts.updateAllThemes();
+      if (typeof Charts !== 'undefined') Charts.updateAllThemes();
     });
 
-    // Handle transaction addition across the app
-    window.showAddTransactionModal = (existingData = null) => {
-      const isEdit = !!existingData;
-      const tType = isEdit ? existingData.type : 'expense';
-      
+    // Refresh current page on major data changes
+    EventBus.on('transaction:added', (txn) => {
+      const alerts = Store.checkBudgetAlerts(txn);
+      alerts.forEach(a => Toast[a.type === 'error' ? 'error' : 'warning'](a.title, a.message));
+    });
+  },
+
+  _setupTransactionModal() {
+    window.showAddTransactionModal = (defaultType) => {
+      const categories = Store.getCategories();
+      const expCats = categories.filter(c => c.type === 'expense');
+      const incCats = categories.filter(c => c.type === 'income');
+
       Modal.show({
-        title: isEdit ? 'Edit Transaction' : 'New Transaction',
+        title: 'Add Transaction',
+        class: 'modal-lg',
         content: `
-          <form id="add-txn-form">
-            <div class="form-group">
-              <div class="type-toggle">
-                <div class="type-toggle-slider ${tType}" id="txn-type-slider"></div>
-                <div class="type-toggle-option ${tType === 'expense' ? 'active' : ''}" data-type="expense">Expense</div>
-                <div class="type-toggle-option ${tType === 'income' ? 'active' : ''}" data-type="income">Income</div>
-                <input type="hidden" id="txn-type-input" value="${tType}">
+          ${AI.isAvailable() ? `
+            <div class="form-group ai-smart-add">
+              <label class="form-label" style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:16px;">✨</span> Smart Add (AI)
+              </label>
+              <div style="display:flex; gap:8px;">
+                <input type="text" id="smart-add-input" class="form-input" placeholder='Type naturally: "Spent ₹500 on groceries yesterday"' style="flex:1;">
+                <button class="btn btn-primary btn-sm" id="smart-add-btn" style="white-space:nowrap;">Parse</button>
               </div>
+              <div id="smart-add-status" class="text-muted" style="font-size:12px; margin-top:4px;"></div>
             </div>
-            
-            <div class="form-group amount-input-wrapper">
-              <span class="amount-input-currency">${Store.getSettings().currencySymbol}</span>
-              <input type="number" id="txn-amount" class="amount-input" placeholder="0" 
-                     value="${isEdit ? existingData.amount : ''}" step="0.01" required>
+            <div class="form-divider">
+              <span>or fill manually</span>
             </div>
-            
-            <div class="form-group">
-              <label class="form-label">Category</label>
-              <div class="category-grid" id="txn-category-grid">
-                <!-- Filled by JS -->
-              </div>
-              <input type="hidden" id="txn-category-input" value="${isEdit ? existingData.category : ''}" required>
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Description / Merchant</label>
-              <input type="text" id="txn-desc" class="form-input" 
-                     value="${isEdit ? existingData.description : ''}" placeholder="E.g. Lunch at Canteen" required>
-            </div>
-            
+          ` : ''}
+
+          <div class="type-toggle" id="type-toggle">
+            <button class="type-btn ${(defaultType || 'expense') === 'expense' ? 'active' : ''} expense-btn" data-type="expense">Expense</button>
+            <button class="type-btn ${defaultType === 'income' ? 'active' : ''} income-btn" data-type="income">Income</button>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Amount (₹)</label>
+            <input type="number" id="txn-amount" class="form-input form-input-lg" placeholder="0" min="1" step="1" autofocus>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select id="txn-category" class="form-input">
+              <optgroup label="Expense" id="txn-expense-opts">
+                ${expCats.map(c => '<option value="' + c.id + '">' + Utils.escapeHtml(c.name) + '</option>').join('')}
+              </optgroup>
+              <optgroup label="Income" id="txn-income-opts">
+                ${incCats.map(c => '<option value="' + c.id + '">' + Utils.escapeHtml(c.name) + '</option>').join('')}
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <input type="text" id="txn-desc" class="form-input" placeholder="What was this for?">
+          </div>
+
+          <div class="form-row-2">
             <div class="form-group">
               <label class="form-label">Date</label>
-              <input type="date" id="txn-date" class="form-input" 
-                     value="${isEdit ? existingData.date : Utils.today()}" required>
+              <input type="date" id="txn-date" class="form-input" value="${Utils.today()}">
             </div>
-          </form>
+            <div class="form-group">
+              <label class="form-label">Notes (optional)</label>
+              <input type="text" id="txn-notes" class="form-input" placeholder="Extra details...">
+            </div>
+          </div>
         `,
         buttons: [
           { text: 'Cancel', class: 'btn-secondary', id: 'cancel-txn-btn' },
-          { text: isEdit ? 'Save Changes' : 'Add Transaction', class: 'btn-primary', id: 'save-txn-btn' }
+          { text: 'Save Transaction', class: 'btn-primary', id: 'save-txn-btn' }
         ],
         onRender: (modalEl) => {
-          this._initAddTxnForm(modalEl, isEdit);
+          let currentType = defaultType || 'expense';
+
+          // Type toggle
+          modalEl.querySelectorAll('.type-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+              modalEl.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+              currentType = btn.dataset.type;
+              this._filterCategoryOptions(currentType);
+            });
+          });
+
+          // Initial filter
+          this._filterCategoryOptions(currentType);
+
+          // AI Smart Add
+          document.getElementById('smart-add-btn')?.addEventListener('click', async () => {
+            const input = document.getElementById('smart-add-input');
+            const status = document.getElementById('smart-add-status');
+            const text = input?.value.trim();
+            if (!text) return;
+
+            status.textContent = 'Parsing with AI...';
+            status.style.color = 'var(--accent-primary)';
+
+            const result = await AI.parseTransaction(text);
+            if (result) {
+              if (result.amount) document.getElementById('txn-amount').value = result.amount;
+              if (result.description) document.getElementById('txn-desc').value = result.description;
+              if (result.date) document.getElementById('txn-date').value = result.date;
+              if (result.categoryId) document.getElementById('txn-category').value = result.categoryId;
+              if (result.type) {
+                currentType = result.type;
+                modalEl.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                modalEl.querySelector('.type-btn[data-type="' + result.type + '"]')?.classList.add('active');
+                this._filterCategoryOptions(result.type);
+              }
+              status.textContent = '✓ Parsed successfully! Review and save.';
+              status.style.color = 'var(--color-income)';
+            } else {
+              status.textContent = '✕ Could not parse. Please fill manually.';
+              status.style.color = 'var(--color-expense)';
+            }
+          });
+
+          // Save button
+          document.getElementById('save-txn-btn')?.addEventListener('click', () => {
+            const amount = document.getElementById('txn-amount')?.value;
+            const category = document.getElementById('txn-category')?.value;
+            const description = document.getElementById('txn-desc')?.value.trim();
+            const date = document.getElementById('txn-date')?.value;
+            const notes = document.getElementById('txn-notes')?.value.trim();
+
+            if (!amount || parseFloat(amount) <= 0) {
+              Toast.error('Invalid Amount', 'Please enter a positive amount.'); return;
+            }
+            if (!description) {
+              Toast.error('Missing Description', 'Please describe this transaction.'); return;
+            }
+
+            const txn = Store.addTransaction({
+              type: currentType,
+              amount: parseFloat(amount),
+              category,
+              description,
+              date: date || Utils.today(),
+              notes
+            });
+
+            Toast.success(currentType === 'income' ? 'Income Added' : 'Expense Added',
+              Utils.formatCurrency(txn.amount) + ' — ' + txn.description
+            );
+            Modal.close();
+
+            // Refresh current page
+            const route = Router.currentRoute;
+            if (route === '#/' && typeof Dashboard !== 'undefined') Dashboard.render();
+            else if (route === '#/transactions' && typeof Transactions !== 'undefined') Transactions.render();
+            if (typeof Sidebar !== 'undefined') Sidebar.render();
+          });
+
+          // Cancel
+          document.getElementById('cancel-txn-btn')?.addEventListener('click', () => Modal.close());
         }
       });
     };
   },
 
-  _initAddTxnForm(modalEl, isEdit) {
-    if (window.lucide) lucide.createIcons();
-    
-    const typeOptions = modalEl.querySelectorAll('.type-toggle-option');
-    const typeSlider = document.getElementById('txn-type-slider');
-    const typeInput = document.getElementById('txn-type-input');
-    const amountInput = document.getElementById('txn-amount');
-    
-    amountInput.focus();
+  _filterCategoryOptions(type) {
+    const expOpts = document.getElementById('txn-expense-opts');
+    const incOpts = document.getElementById('txn-income-opts');
+    if (expOpts) expOpts.style.display = type === 'expense' ? '' : 'none';
+    if (incOpts) incOpts.style.display = type === 'income' ? '' : 'none';
 
-    // Renders categories based on type
-    const renderCats = (type) => {
-      const grid = document.getElementById('txn-category-grid');
-      const cats = Store.getCategories(type);
-      grid.innerHTML = cats.map(c => `
-        <div class="category-grid-item" data-id="${c.id}">
-          <div class="cat-icon" style="background-color: ${c.color}">
-            <i data-lucide="${c.icon}"></i>
-          </div>
-          <span class="cat-name">${c.name}</span>
-        </div>
-      `).join('');
-      if (window.lucide) lucide.createIcons();
-
-      // Bind category selection
-      grid.querySelectorAll('.category-grid-item').forEach(item => {
-        item.addEventListener('click', function() {
-          grid.querySelectorAll('.category-grid-item').forEach(i => i.classList.remove('selected'));
-          this.classList.add('selected');
-          document.getElementById('txn-category-input').value = this.dataset.id;
-        });
-      });
-
-      // Maintain selection on type switch if it still exists (or is edit mode)
-      const curCat = document.getElementById('txn-category-input').value;
-      if (curCat && cats.find(c => c.id === curCat)) {
-         const el = grid.querySelector(`[data-id="${curCat}"]`);
-         if(el) el.classList.add('selected');
-      } else {
-         document.getElementById('txn-category-input').value = '';
-      }
-    };
-
-    // Initial render
-    renderCats(typeInput.value);
-
-    // Toggle type
-    typeOptions.forEach(opt => {
-      opt.addEventListener('click', function() {
-        const type = this.dataset.type;
-        typeInput.value = type;
-        
-        typeOptions.forEach(o => o.classList.remove('active'));
-        this.classList.add('active');
-        
-        typeSlider.className = `type-toggle-slider ${type}`;
-        renderCats(type);
-      });
-    });
-
-    // Save
-    document.getElementById('cancel-txn-btn').addEventListener('click', () => Modal.close());
-    
-    document.getElementById('save-txn-btn').addEventListener('click', () => {
-      const amt = document.getElementById('txn-amount');
-      const cat = document.getElementById('txn-category-input');
-      const desc = document.getElementById('txn-desc');
-      const date = document.getElementById('txn-date');
-      
-      let isValid = true;
-      if (!Utils.validateAmount(amt.value)) { amt.classList.add('error'); isValid = false; } else { amt.classList.remove('error'); }
-      if (!cat.value) { isValid = false; }
-      if (!desc.value.trim()) { desc.classList.add('error'); isValid = false; } else { desc.classList.remove('error'); }
-      
-      if (!isValid) {
-        modalEl.querySelector('.modal-content').classList.add('animate-shake');
-        setTimeout(() => modalEl.querySelector('.modal-content').classList.remove('animate-shake'), 500);
-        return;
-      }
-
-      const data = {
-        type: typeInput.value,
-        amount: parseFloat(amt.value),
-        category: cat.value,
-        description: desc.value.trim(),
-        date: date.value
-      };
-
-      if (isEdit) {
-        // Just mocking edit logic based on a global if it existed, proper implementation passes ID.
-        // As this is a generic global function, we need a way to pass ID. 
-        // For now, let's assume `isEdit` is actually the ID or boolean.
-        console.warn("Edit save needs ID context. Assuming add for now unless refactored.");
-        Store.addTransaction(data);
-        Toast.success('Saved', 'Transaction updated successfully.');
-      } else {
-        const newTxn = Store.addTransaction(data);
-        Toast.success('Added', `₹${data.amount} ${data.type === 'income' ? 'earned' : 'spent'} successfully.`);
-        
-        // Alert check on add
-        const alerts = Store.checkBudgetAlerts(newTxn);
-        alerts.forEach(alert => {
-           Toast[alert.type](alert.title, alert.message, 6000);
-        });
-      }
-      
-      Modal.close();
-      if(Router.currentRoute === '#/' && window.Dashboard) Dashboard.render();
-      if(Router.currentRoute === '#/transactions' && window.Transactions) Transactions.render();
-      Sidebar.render(); // update badge
-      Header.render(); // update badge
-    });
-  },
-
-  checkInitialAlerts() {
-    const month = Utils.toMonthString(new Date());
-    const budgetStatus = Store.getBudgetStatus(month);
-    if (!budgetStatus) return;
-    
-    let over = 0, near = 0;
-    Object.values(budgetStatus.categoryStatus).forEach(s => {
-      if (s.status === 'over-budget') over++;
-      else if (s.status === 'near-limit') near++;
-    });
-    
-    if (over > 0) Toast.error('Budget Alert', `You have exceeded the budget in ${over} categories.`);
-    else if (near > 0) Toast.warning('Budget Warning', `${near} categories are nearing their monthly limits.`);
+    // Select first option of visible group
+    const select = document.getElementById('txn-category');
+    if (select) {
+      const visibleOpts = select.querySelectorAll('optgroup[style=""] option, optgroup:not([style]) option');
+      if (visibleOpts.length > 0) select.value = visibleOpts[0].value;
+    }
   }
 };
 
-// Start
-document.addEventListener('DOMContentLoaded', () => {
-  App.init();
-});
+// Boot the application
+document.addEventListener('DOMContentLoaded', () => App.init());

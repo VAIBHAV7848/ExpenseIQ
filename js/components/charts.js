@@ -113,30 +113,25 @@ const Charts = {
       }
     };
     
+    // Helper: hex color to rgba string
+    function hexToRgba(hex, alpha) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
+    }
+
     // Add gradient fills to area datasets
     datasets.forEach(ds => {
       if (ds.fill) {
         ds.backgroundColor = (context) => {
           const chart = context.chart;
           const {ctx, chartArea} = chart;
-          if (!chartArea) return;
+          if (!chartArea) return 'transparent';
           const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
-          const color = ds.borderColor;
-          // Support for both hex and hsl if we switch later
-          const baseColor = color.startsWith('#') ? color : color;
-          gradient.addColorStop(0, 'rgba(99, 102, 241, 0)');
-          gradient.addColorStop(1, color.replace(')', ', 0.2)').replace('rgb', 'rgba').replace('#', 'rgba(')); 
-          // Note: the above string manipulation is fragile, simplifying to fixed colors for safety or better mapping
-          if (color === '#10b981') {
-            gradient.addColorStop(0, 'rgba(16, 185, 129, 0)');
-            gradient.addColorStop(1, 'rgba(16, 185, 129, 0.2)');
-          } else if (color === '#ef4444') {
-            gradient.addColorStop(0, 'rgba(239, 68, 68, 0)');
-            gradient.addColorStop(1, 'rgba(239, 68, 68, 0.2)');
-          } else {
-            gradient.addColorStop(0, 'rgba(99, 102, 241, 0)');
-            gradient.addColorStop(1, 'rgba(99, 102, 241, 0.2)');
-          }
+          const color = ds.borderColor || '#6366f1';
+          gradient.addColorStop(0, hexToRgba(color, 0));
+          gradient.addColorStop(1, hexToRgba(color, 0.2));
           return gradient;
         };
       }

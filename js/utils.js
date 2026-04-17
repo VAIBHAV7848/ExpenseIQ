@@ -4,18 +4,44 @@
 
 const Utils = {
   // Generate unique ID
-  generateId(prefix = 'txn') {
-    return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+  generateId(prefix = 'id') {
+    return prefix + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  },
+
+  // Get or create persistent device ID
+  getDeviceId() {
+    let id = localStorage.getItem('expenseiq_device_id');
+    if (!id) {
+      id = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('expenseiq_device_id', id);
+    }
+    return id;
+  },
+
+  // XSS-safe HTML escaping
+  escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
   },
 
   // Format currency in Indian format
   formatCurrency(amount, symbol = '₹') {
-    if (amount === undefined || amount === null || isNaN(amount)) return `${symbol}0`;
+    if (amount === undefined || amount === null || isNaN(amount)) return symbol + '0';
     const formatter = new Intl.NumberFormat('en-IN', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     });
-    return `${symbol}${formatter.format(Math.abs(amount))}`;
+    return symbol + formatter.format(Math.abs(amount));
+  },
+
+  // Format INR without symbol
+  formatINR(amount) {
+    return new Intl.NumberFormat('en-IN', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(Math.abs(amount));
   },
 
   // Format date
@@ -41,8 +67,26 @@ const Utils = {
     const diff = Math.floor((today - d) / (1000 * 60 * 60 * 24));
     if (diff === 0) return 'Today';
     if (diff === 1) return 'Yesterday';
-    if (diff < 7) return `${diff} days ago`;
+    if (diff < 7) return diff + ' days ago';
     return this.formatDate(dateStr, 'medium');
+  },
+
+  // Format relative timestamp
+  formatRelativeTime(isoStr) {
+    if (!isoStr) return '';
+    const date = new Date(isoStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHr = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHr / 24);
+
+    if (diffSec < 60) return 'just now';
+    if (diffMin < 60) return diffMin + 'm ago';
+    if (diffHr < 24) return diffHr + 'h ago';
+    if (diffDay < 7) return diffDay + 'd ago';
+    return this.formatDate(isoStr, 'short');
   },
 
   // Get date string YYYY-MM-DD
@@ -54,7 +98,7 @@ const Utils = {
   // Get month string YYYY-MM
   toMonthString(date) {
     const d = date instanceof Date ? date : new Date(date);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
   },
 
   // Get month name
@@ -103,7 +147,6 @@ const Utils = {
     const update = (currentTime) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      // easeOutExpo
       const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
       const current = Math.round(start + (target - start) * eased);
       element.textContent = this.formatCurrency(current);
@@ -154,10 +197,26 @@ const Utils = {
     return !isNaN(n) && n > 0;
   },
 
-  // Escape HTML
-  escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+  // Advance date by frequency
+  advanceDate(dateStr, frequency) {
+    const d = new Date(dateStr);
+    switch (frequency) {
+      case 'daily':
+        d.setDate(d.getDate() + 1);
+        break;
+      case 'weekly':
+        d.setDate(d.getDate() + 7);
+        break;
+      case 'monthly':
+        d.setMonth(d.getMonth() + 1);
+        break;
+    }
+    return this.toDateString(d);
+  },
+
+  // Get weekday name
+  getWeekday(dateStr) {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[new Date(dateStr).getDay()];
   }
 };

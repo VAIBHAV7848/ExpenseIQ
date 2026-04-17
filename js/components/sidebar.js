@@ -5,8 +5,7 @@
 const Sidebar = {
   render() {
     const sidebar = document.getElementById('sidebar');
-    
-    // Get budget notifications count
+
     const month = Utils.toMonthString(new Date());
     const budgetStatus = Store.getBudgetStatus(month);
     let alertsCount = 0;
@@ -15,8 +14,8 @@ const Sidebar = {
         if (s.status === 'near-limit' || s.status === 'over-budget') alertsCount++;
       });
     }
-    
-    const badgeHtml = alertsCount > 0 ? `<div class="nav-item-badge">${alertsCount}</div>` : '';
+
+    const badgeHtml = alertsCount > 0 ? '<div class="nav-item-badge">' + alertsCount + '</div>' : '';
 
     sidebar.innerHTML = `
       <div class="sidebar-logo">
@@ -42,12 +41,20 @@ const Sidebar = {
           <i data-lucide="bar-chart-3"></i>
           <span>Reports</span>
         </a>
-        
+
         <div class="sidebar-nav-label">Management</div>
         <a href="#/budgets" class="nav-item" data-route="#/budgets">
-          <i data-lucide="target"></i>
+          <i data-lucide="calculator"></i>
           <span>Budgets</span>
           ${badgeHtml}
+        </a>
+        <a href="#/goals" class="nav-item" data-route="#/goals">
+          <i data-lucide="target"></i>
+          <span>Goals</span>
+        </a>
+        <a href="#/debts" class="nav-item" data-route="#/debts">
+          <i data-lucide="handshake"></i>
+          <span>Debts</span>
         </a>
         <a href="#/categories" class="nav-item" data-route="#/categories">
           <i data-lucide="folders"></i>
@@ -58,9 +65,7 @@ const Sidebar = {
           <span>Settings</span>
         </a>
       </div>
-      <div class="sidebar-user-section" id="sidebar-user-profile">
-        <!-- Rendered by JS -->
-      </div>
+      <div class="sidebar-user-section" id="sidebar-user-profile"></div>
       <div class="sidebar-footer">
         <button class="sidebar-add-btn" id="sidebar-add-btn">
           <i data-lucide="plus"></i>
@@ -100,12 +105,12 @@ const Sidebar = {
         </div>
       `;
       document.getElementById('app').appendChild(bottomNav);
-      
+
       const overlay = document.createElement('div');
       overlay.className = 'sidebar-overlay';
       overlay.id = 'sidebar-overlay';
       document.getElementById('app').appendChild(overlay);
-      
+
       overlay.addEventListener('click', () => {
         document.getElementById('sidebar').classList.remove('open');
         overlay.classList.remove('active');
@@ -114,21 +119,19 @@ const Sidebar = {
 
     if (window.lucide) lucide.createIcons();
 
-    // Bind Add button globally
     document.getElementById('sidebar-add-btn')?.addEventListener('click', () => {
-       if(window.showAddTransactionModal) window.showAddTransactionModal();
+      if (window.showAddTransactionModal) window.showAddTransactionModal();
     });
     document.getElementById('bottom-nav-add')?.addEventListener('click', () => {
-       if(window.showAddTransactionModal) window.showAddTransactionModal();
+      if (window.showAddTransactionModal) window.showAddTransactionModal();
     });
-    
-    // Force active state refresh
+
     if (Router.currentRoute) {
       document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.toggle('active', item.dataset.route === Router.currentRoute);
       });
       document.querySelectorAll('.bottom-nav-item').forEach(item => {
-        if(item.dataset.route) item.classList.toggle('active', item.dataset.route === Router.currentRoute);
+        if (item.dataset.route) item.classList.toggle('active', item.dataset.route === Router.currentRoute);
       });
     }
   },
@@ -139,8 +142,7 @@ const Sidebar = {
 
     if (Auth.isAuthenticated()) {
       const user = Auth.getUser();
-      const avatarUrl = user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.email || 'User')}&background=0D8ABC&color=fff`;
-      
+      const avatarUrl = user?.user_metadata?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.email || 'User') + '&background=6366f1&color=fff';
       profileEl.innerHTML = `
         <div class="sidebar-user-card" onclick="location.hash='#/settings'">
           <div class="user-avatar-wrap">
@@ -150,7 +152,7 @@ const Sidebar = {
             <div class="user-name">${Utils.escapeHtml(user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User')}</div>
             <div class="user-status">Online Sync</div>
           </div>
-          <button class="sidebar-logout" onclick="Auth.signOut()" title="Sign Out">
+          <button class="sidebar-logout" onclick="event.stopPropagation(); Auth.signOut()" title="Sign Out">
             <i data-lucide="log-out"></i>
           </button>
         </div>
@@ -174,4 +176,3 @@ const Sidebar = {
     if (window.lucide) lucide.createIcons();
   }
 };
-

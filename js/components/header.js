@@ -5,8 +5,7 @@
 const Header = {
   render() {
     const header = document.getElementById('header');
-    
-    // Get budget notifications count
+
     const month = Utils.toMonthString(new Date());
     const budgetStatus = Store.getBudgetStatus(month);
     let alertsCount = 0;
@@ -15,8 +14,8 @@ const Header = {
         if (s.status === 'near-limit' || s.status === 'over-budget') alertsCount++;
       });
     }
-    
-    const badgeHtml = alertsCount > 0 ? `<div class="notification-badge"></div>` : '';
+
+    const badgeHtml = alertsCount > 0 ? '<div class="notification-badge"></div>' : '';
     const settings = Store.getSettings();
 
     header.innerHTML = `
@@ -35,25 +34,28 @@ const Header = {
           <input type="text" id="global-search" placeholder="Search transactions...">
           <div class="header-search-shortcut">/</div>
         </div>
-        
+
+        <div id="sync-status-badge" class="sync-badge synced" title="Sync Status">
+          ✓ Synced
+        </div>
+
         <button class="header-icon-btn" id="notification-btn" title="Alerts">
           <i data-lucide="bell" ${alertsCount > 0 ? 'class="animate-bell"' : ''}></i>
           ${badgeHtml}
         </button>
-        
+
         <button class="theme-toggle" id="theme-toggle" title="Toggle Theme">
           <i data-lucide="${settings.theme === 'dark' ? 'sun' : 'moon'}"></i>
         </button>
-        
-        <div class="user-profile" id="header-user-profile">
-        <!-- Rendered by JS -->
+
+        <div class="user-profile" id="header-user-profile"></div>
       </div>
     `;
 
     if (window.lucide) lucide.createIcons();
-
     this.renderUserProfile();
     this.bindEvents();
+    this._listenSyncEvents();
   },
 
   renderUserProfile() {
@@ -62,7 +64,7 @@ const Header = {
 
     if (Auth.isAuthenticated()) {
       const user = Auth.getUser();
-      const avatarUrl = user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.email || 'User')}&background=0D8ABC&color=fff`;
+      const avatarUrl = user?.user_metadata?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.email || 'User') + '&background=6366f1&color=fff';
       profileEl.innerHTML = `
         <div style="display:flex; align-items:center; gap:var(--space-2); cursor:pointer;" onclick="Auth.signOut()" title="Sign Out">
           <img src="${avatarUrl}" alt="Profile" class="avatar" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
@@ -89,62 +91,83 @@ const Header = {
   },
 
   bindEvents() {
-    // Setup Theme Toggle
-    document.getElementById('theme-toggle').addEventListener('click', () => {
+    document.getElementById('theme-toggle')?.addEventListener('click', () => {
       const currentTheme = document.documentElement.getAttribute('data-theme');
       const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', newTheme);
-      
+
       const icon = document.querySelector('#theme-toggle i');
-      icon.setAttribute('data-lucide', newTheme === 'dark' ? 'sun' : 'moon');
+      if (icon) icon.setAttribute('data-lucide', newTheme === 'dark' ? 'sun' : 'moon');
       if (window.lucide) lucide.createIcons();
-      
+
       Store.updateSettings({ theme: newTheme });
       EventBus.emit('theme:changed', newTheme);
     });
 
-    // Mobile menu toggle
-    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.add('open');
-      document.getElementById('sidebar-overlay').classList.add('active');
+    document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+      document.getElementById('sidebar')?.classList.add('open');
+      document.getElementById('sidebar-overlay')?.classList.add('active');
     });
 
-    // Global Search shortcut
     document.addEventListener('keydown', (e) => {
       if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
         e.preventDefault();
-        document.getElementById('global-search').focus();
+        document.getElementById('global-search')?.focus();
       }
     });
 
-    // Handle global search
     const searchInput = document.getElementById('global-search');
-    searchInput.addEventListener('input', Utils.debounce((e) => {
+    searchInput?.addEventListener('input', Utils.debounce((e) => {
       const query = e.target.value.trim();
       if (query && Router.currentRoute !== '#/transactions') {
         Router.navigate('#/transactions');
-        setTimeout(() => {
-          EventBus.emit('global:search', query);
-        }, 300);
+        setTimeout(() => EventBus.emit('global:search', query), 300);
       } else if (Router.currentRoute === '#/transactions') {
         EventBus.emit('global:search', query);
       }
     }, 500));
   },
 
+  _listenSyncEvents() {
+    EventBus.on('sync:status', (data) => {
+      const badge = document.getElementById('sync-status-badge');
+      if (!badge) return;
+      badge.className = 'sync-badge ' + data.status;
+      if (data.status === 'syncing') {
+        badge.innerHTML = '<span class="spin">↻</span> Syncing...';
+      } else if (data.status === 'synced') {
+        badge.innerHTML = '✓ Synced';
+      } else if (data.status === 'offline') {
+        badge.innerHTML = '⚠ Offline';
+      } else if (data.status === 'error') {
+        badge.innerHTML = '✕ Error';
+      }
+    });
+
+    EventBus.on('sync:pending', ({ count }) => {
+      const badge = document.getElementById('sync-status-badge');
+      if (badge && count > 0) {
+        badge.className = 'sync-badge syncing';
+        badge.innerHTML = '↻ ' + count + ' pending';
+      }
+    });
+  },
+
   updateTitle(route) {
     const titleEl = document.getElementById('header-title');
     if (!titleEl) return;
-    
+
     const map = {
       '#/': 'Dashboard',
       '#/transactions': 'Transactions',
       '#/reports': 'Reports & Analytics',
       '#/budgets': 'Budget Management',
       '#/categories': 'Categories',
-      '#/settings': 'Settings'
+      '#/settings': 'Settings',
+      '#/goals': 'Savings Goals',
+      '#/debts': 'Debt Tracker'
     };
-    
+
     titleEl.textContent = map[route] || 'ExpenseIQ';
   }
 };
