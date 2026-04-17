@@ -3,7 +3,7 @@
    Cache-first for static assets, network-only for APIs
    ======================================== */
 
-const CACHE_NAME = 'expenseiq-v5';
+const CACHE_NAME = 'expenseiq-v6';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
