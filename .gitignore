@@ -1,4 +1,5 @@
-config.js
+config.local.js
+ExpenseIQ/
 node_modules/
 .env
 .env.local
