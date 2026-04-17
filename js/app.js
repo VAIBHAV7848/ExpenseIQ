@@ -34,11 +34,11 @@ const App = {
     Router.init();
 
     // 5b. Ensure app shell renders (sidebar + header)
-    if (Auth.isAuthenticated() || Auth.isGuest()) {
+    // Always render — login page hides the shell, router guard handles auth
+    try {
       Sidebar.render();
       Header.render();
-      document.getElementById('app').style.display = 'flex';
-    }
+    } catch (e) { console.warn('Shell render deferred:', e); }
 
     // 6. Init Sync Engine (non-blocking)
     try { await syncEngine.init(); } catch (e) { console.warn('SyncEngine init skipped:', e); }

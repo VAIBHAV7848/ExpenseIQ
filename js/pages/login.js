@@ -80,6 +80,8 @@ const Login = {
     document.getElementById('btn-login-guest')?.addEventListener('click', () => {
       Auth.setGuest(true);
       this.destroy();
+      Sidebar.render();
+      Header.render();
       window.location.hash = '#/';
     });
 
@@ -87,6 +89,8 @@ const Login = {
       Auth.setGuest(true);
       Store.loadDemoData();
       this.destroy();
+      Sidebar.render();
+      Header.render();
       window.location.hash = '#/';
       Toast.success('Demo Loaded', '50 sample transactions added for exploration.');
     });
