@@ -52,8 +52,9 @@ const Auth = {
       await supabaseClient.auth.signOut();
     }
     this.session = null;
-    this.setGuest(false);
-    Store.clearAll();
+    localStorage.removeItem('expenseiq_guest');
+    localStorage.removeItem('expenseiq_data');
+    localStorage.removeItem('expenseiq_settings');
     if (typeof subscriptionManager !== 'undefined') subscriptionManager.unsubscribeAll();
     window.location.hash = '#/login';
     window.location.reload();
