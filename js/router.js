@@ -27,6 +27,13 @@ const Router = {
   _handleRoute() {
     const hash = location.hash || '#/';
 
+    // --- OAuth Redirect Guard ---
+    // If the hash contains an access token from Google, pause the router.
+    // Supabase JS will parse this natively, and fire onAuthStateChange.
+    if (hash.includes('access_token=') || hash.includes('error_url=')) {
+      return; 
+    }
+
     // --- Route Guard ---
     if (hash !== '#/login') {
       if (!Auth.isAuthenticated() && !Auth.isGuest()) {
