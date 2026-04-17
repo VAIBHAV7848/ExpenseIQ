@@ -7,7 +7,7 @@ let supabaseAdmin = null;
 
 // Fallback keys (publishable, protected by RLS)
 const FALLBACK_URL = 'https://krzlmgxzuqgwmvrmowax.supabase.co';
-const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtyemxtZ3h6dXFnd212cm1vd2F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ2MjEyNjgsImV4cCI6MjA2MDE5NzI2OH0.L6pkqxiZCsMiFfpCv4BrexQb-L9G7SuI_rmHoec5p1U';
+const FALLBACK_KEY = 'sb_publishable__mLHC_b3oVC1yJi38L_xug_NqGwro8_';
 
 try {
   const url = (window.CONFIG && CONFIG.SUPABASE_URL) || FALLBACK_URL;
