@@ -35,16 +35,27 @@ const Auth = {
 
   async signInWithGoogle() {
     if (!window.supabaseClient) {
-      if (window.Toast) Toast.error('Not Available', 'Supabase is not configured.');
+      if (window.Toast) Toast.error('Not Available', 'Supabase is not configured. Check config.js.');
+      console.error('signInWithGoogle: supabaseClient is null');
       return;
     }
-    const { error } = await supabaseClient.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + window.location.pathname
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + window.location.pathname
+        }
+      });
+      if (error) {
+        console.error('Google Sign-In error:', error);
+        if (window.Toast) Toast.error('Sign In Failed', error.message);
+      } else {
+        console.log('OAuth redirect initiated:', data);
       }
-    });
-    if (error && window.Toast) Toast.error('Sign In Failed', error.message);
+    } catch (e) {
+      console.error('Google Sign-In exception:', e);
+      if (window.Toast) Toast.error('Sign In Error', e.message || 'Something went wrong.');
+    }
   },
 
   async signOut() {
