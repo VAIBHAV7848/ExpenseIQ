@@ -7,7 +7,7 @@ const CACHE_NAME = 'expenseiq-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/config.example.js',
+  '/config.js',
   '/manifest.json',
   '/css/index.css',
   '/css/animations.css',
@@ -23,7 +23,8 @@ const STATIC_ASSETS = [
   '/css/debts.css',
   '/css/login.css',
   '/css/sync.css',
-  '/css/ai-chat.css',
+  '/css/aiChat.css',
+  '/js/supabaseConfig.js',
   '/js/utils.js',
   '/js/auth.js',
   '/js/store.js',
