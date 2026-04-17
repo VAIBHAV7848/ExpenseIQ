@@ -1,4 +1,6 @@
 {
   "buildCommand": "node build.js",
-  "outputDirectory": "."
+  "installCommand": "echo 'no deps'",
+  "outputDirectory": ".",
+  "framework": null
 }
