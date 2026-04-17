@@ -33,6 +33,13 @@ const App = {
     // 5. Init Router
     Router.init();
 
+    // 5b. Ensure app shell renders (sidebar + header)
+    if (Auth.isAuthenticated() || Auth.isGuest()) {
+      Sidebar.render();
+      Header.render();
+      document.getElementById('app').style.display = 'flex';
+    }
+
     // 6. Init Sync Engine (non-blocking)
     try { await syncEngine.init(); } catch (e) { console.warn('SyncEngine init skipped:', e); }
 
