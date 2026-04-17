@@ -1,0 +1,7 @@
+{
+  "name": "expenseiq",
+  "version": "2.0.0",
+  "scripts": {
+    "build": "node build.js"
+  }
+}
