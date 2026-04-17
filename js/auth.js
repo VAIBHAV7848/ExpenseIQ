@@ -27,6 +27,12 @@ const Auth = {
       if (session) {
         this.setGuest(false);
         EventBus.emit('auth:changed', session);
+        
+        // If we just successfully authenticated from Google OAuth or Login screen,
+        // redirect to the Dashboard so they don't stare at a blank screen.
+        if (window.location.hash.includes('access_token=') || window.location.hash === '#/login') {
+          window.location.hash = '#/';
+        }
       } else {
         EventBus.emit('auth:signedOut');
       }
