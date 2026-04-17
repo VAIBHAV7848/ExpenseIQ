@@ -6,14 +6,14 @@ const Login = {
   render() {
     const wrap = document.createElement('div');
     wrap.className = 'login-page animate-fade-in';
-    
+
     wrap.innerHTML = `
       <div class="login-container">
         <div class="login-logo animate-bounce-in" style="animation-delay: 100ms">
           💰
         </div>
         <h1 class="login-title animate-fade-in-up" style="animation-delay: 200ms">ExpenseIQ</h1>
-        <p class="login-subtitle animate-fade-in-up" style="animation-delay: 300ms">Smart financial tracking, tailored for you.</p>
+        <p class="login-subtitle animate-fade-in-up" style="animation-delay: 300ms">Smart financial tracking, powered by AI.</p>
 
         <div class="login-buttons animate-fade-in-up" style="animation-delay: 400ms">
           <button id="btn-login-google" class="btn btn-google">
@@ -31,25 +31,35 @@ const Login = {
           <button id="btn-login-guest" class="btn btn-guest">
             Continue as Guest
           </button>
+
+          <button id="btn-login-demo" class="btn btn-demo">
+            <i data-lucide="database"></i>
+            Try with Sample Data
+          </button>
+        </div>
+
+        <div class="login-features animate-fade-in-up" style="animation-delay: 500ms">
+          <div class="login-feature"><i data-lucide="shield-check"></i> Offline-first architecture</div>
+          <div class="login-feature"><i data-lucide="zap"></i> AI-powered insights</div>
+          <div class="login-feature"><i data-lucide="refresh-cw"></i> Real-time multi-device sync</div>
         </div>
       </div>
     `;
 
-    // Because this screen hides the normal shell, we mount it directly to body or clear app and mount
     document.getElementById('app').style.display = 'none';
-    
-    // Check if login wrapper already exists, else create it
+
     let loginWrapper = document.getElementById('login-wrapper');
     if (!loginWrapper) {
       loginWrapper = document.createElement('div');
       loginWrapper.id = 'login-wrapper';
       document.body.appendChild(loginWrapper);
     }
-    
+
     loginWrapper.innerHTML = '';
     loginWrapper.appendChild(wrap);
     loginWrapper.style.display = 'block';
 
+    if (window.lucide) lucide.createIcons();
     this.bindEvents();
   },
 
@@ -63,14 +73,22 @@ const Login = {
   },
 
   bindEvents() {
-    document.getElementById('btn-login-google').addEventListener('click', () => {
+    document.getElementById('btn-login-google')?.addEventListener('click', () => {
       Auth.signInWithGoogle();
     });
 
-    document.getElementById('btn-login-guest').addEventListener('click', () => {
+    document.getElementById('btn-login-guest')?.addEventListener('click', () => {
       Auth.setGuest(true);
-      this.destroy(); // Remove login screen
-      window.location.hash = '#/'; // Go to dashboard
+      this.destroy();
+      window.location.hash = '#/';
+    });
+
+    document.getElementById('btn-login-demo')?.addEventListener('click', () => {
+      Auth.setGuest(true);
+      Store.loadDemoData();
+      this.destroy();
+      window.location.hash = '#/';
+      Toast.success('Demo Loaded', '50 sample transactions added for exploration.');
     });
   }
 };

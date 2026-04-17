@@ -3,8 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ExpenseIQ — Smart Expense Tracker to record daily income and expenses with categorization, reports, budgets, and alerts.">
+  <meta name="description" content="ExpenseIQ — Smart Expense Tracker with AI-powered insights, real-time sync, budgets, goals, and debt tracking.">
   <title>ExpenseIQ — Smart Expense Tracker</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
@@ -22,9 +28,14 @@
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/transactions.css">
   <link rel="stylesheet" href="css/reports.css">
+  <link rel="stylesheet" href="css/budgets.css">
   <link rel="stylesheet" href="css/categories.css">
   <link rel="stylesheet" href="css/settings.css">
   <link rel="stylesheet" href="css/login.css">
+  <link rel="stylesheet" href="css/sync.css">
+  <link rel="stylesheet" href="css/aiChat.css">
+  <link rel="stylesheet" href="css/goals.css">
+  <link rel="stylesheet" href="css/debts.css">
 </head>
 <body>
   <!-- App Shell -->
@@ -57,28 +68,52 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <!-- App Scripts -->
+  <!-- IMPORTANT: Copy config.example.js to config.js and fill in your API keys -->
+  <script src="config.js"></script>
+
+  <!-- App Scripts — Load order is CRITICAL -->
+  <script src="js/utils.js"></script>
   <script src="js/data/defaultCategories.js"></script>
   <script src="js/data/sampleData.js"></script>
   <script src="js/supabaseConfig.js"></script>
+
+  <!-- Sync System -->
+  <script src="js/sync/offlineStore.js"></script>
+  <script src="js/sync/conflictResolver.js"></script>
+  <script src="js/sync/retryQueue.js"></script>
+  <script src="js/sync/networkDetector.js"></script>
+  <script src="js/sync/subscriptionManager.js"></script>
+  <script src="js/sync/syncEngine.js"></script>
+
+  <!-- Core -->
   <script src="js/auth.js"></script>
-  <script src="js/utils.js"></script>
   <script src="js/store.js"></script>
   <script src="js/router.js"></script>
+  <script src="js/pwa.js"></script>
+  <script src="js/ai.js"></script>
+
+  <!-- Components -->
   <script src="js/components/toast.js"></script>
   <script src="js/components/modal.js"></script>
   <script src="js/components/confirmDialog.js"></script>
-  <script src="js/components/sidebar.js"></script>
-  <script src="js/components/header.js"></script>
   <script src="js/components/charts.js"></script>
   <script src="js/components/filterPanel.js"></script>
+  <script src="js/components/sidebar.js"></script>
+  <script src="js/components/header.js"></script>
+  <script src="js/components/aiChat.js"></script>
+
+  <!-- Pages -->
+  <script src="js/pages/login.js"></script>
   <script src="js/pages/dashboard.js"></script>
   <script src="js/pages/transactions.js"></script>
   <script src="js/pages/reports.js"></script>
   <script src="js/pages/budgets.js"></script>
   <script src="js/pages/categories.js"></script>
   <script src="js/pages/settings.js"></script>
-  <script src="js/pages/login.js"></script>
+  <script src="js/pages/goals.js"></script>
+  <script src="js/pages/debts.js"></script>
+
+  <!-- App Entry Point — MUST be last -->
   <script src="js/app.js"></script>
 </body>
 </html>

@@ -3,45 +3,48 @@
    ======================================== */
 
 const Auth = {
-  isGuestUser: localStorage.getItem('expenseiq_guest') === 'true',
   session: null,
 
   async init() {
     if (!window.supabaseClient) {
-      console.warn("Supabase client missing. Defaulting to Guest mode.");
+      console.warn('Supabase client missing. Defaulting to Guest mode.');
       this.setGuest(true);
       return;
     }
 
-    // Check current session
-    const { data, error } = await supabaseClient.auth.getSession();
-    if (data.session) {
-      this.session = data.session;
-      this.setGuest(false);
+    try {
+      const { data } = await supabaseClient.auth.getSession();
+      if (data.session) {
+        this.session = data.session;
+        this.setGuest(false);
+      }
+    } catch (e) {
+      console.warn('Auth session check failed:', e);
     }
 
-    // Listen for auth state changes
     supabaseClient.auth.onAuthStateChange((_event, session) => {
       this.session = session;
       if (session) {
         this.setGuest(false);
-        EventBus.emit('auth:changed', this.session);
+        EventBus.emit('auth:changed', session);
+      } else {
+        EventBus.emit('auth:signedOut');
       }
     });
   },
 
   async signInWithGoogle() {
-    if (!window.supabaseClient) return;
+    if (!window.supabaseClient) {
+      if (window.Toast) Toast.error('Not Available', 'Supabase is not configured.');
+      return;
+    }
     const { error } = await supabaseClient.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.origin + window.location.pathname
       }
     });
-    if (error) {
-      console.error("Error signing in with Google:", error.message);
-      if (window.Toast) Toast.error("Sign In Failed", error.message);
-    }
+    if (error && window.Toast) Toast.error('Sign In Failed', error.message);
   },
 
   async signOut() {
@@ -50,21 +53,15 @@ const Auth = {
     }
     this.session = null;
     this.setGuest(false);
-    
-    // Clear local storage strictly to prevent data leaks between accounts
     Store.clearAll();
-    
-    // Refresh the page or navigate to login
+    if (typeof subscriptionManager !== 'undefined') subscriptionManager.unsubscribeAll();
     window.location.hash = '#/login';
     window.location.reload();
   },
 
   setGuest(isGuest) {
-    this.isGuestUser = isGuest;
     localStorage.setItem('expenseiq_guest', isGuest ? 'true' : 'false');
-    if (isGuest) {
-        EventBus.emit('auth:guest');
-    }
+    if (isGuest) EventBus.emit('auth:guest');
   },
 
   isAuthenticated() {
@@ -72,10 +69,10 @@ const Auth = {
   },
 
   isGuest() {
-    return this.isGuestUser;
+    return localStorage.getItem('expenseiq_guest') === 'true';
   },
 
   getUser() {
-    return this.session ? this.session.user : null;
+    return this.session?.user ?? null;
   }
 };

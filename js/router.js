@@ -8,7 +8,6 @@ const Router = {
 
   init() {
     window.addEventListener('hashchange', () => this._handleRoute());
-    // Handle initial route
     if (!location.hash) location.hash = '#/';
     else this._handleRoute();
   },
@@ -34,21 +33,21 @@ const Router = {
         location.hash = '#/login';
         return;
       }
-      
-      // Ensure app shell is rendered if we bypassed the initial boot block
+
+      // Ensure app shell is rendered
       if (window.Sidebar && document.getElementById('sidebar').innerHTML.trim() === '') {
         Sidebar.render();
       }
       if (window.Header && document.getElementById('header').innerHTML.trim() === '') {
         Header.render();
       }
-      
+
       const appWrap = document.getElementById('app');
       if (appWrap) appWrap.style.display = 'flex';
-      
+
       const loginWrap = document.getElementById('login-wrapper');
       if (loginWrap) loginWrap.style.display = 'none';
-      
+
     } else {
       if (Auth.isAuthenticated() || Auth.isGuest()) {
         location.hash = '#/';
@@ -58,7 +57,6 @@ const Router = {
 
     const handler = this.routes[hash];
     if (!handler) {
-      // 404 — redirect to dashboard or login
       location.hash = (Auth.isAuthenticated() || Auth.isGuest()) ? '#/' : '#/login';
       return;
     }
@@ -89,7 +87,7 @@ const Router = {
       });
 
       // Update header title
-      Header.updateTitle(hash);
+      if (window.Header) Header.updateTitle(hash);
 
       // Scroll to top
       content.scrollTop = 0;

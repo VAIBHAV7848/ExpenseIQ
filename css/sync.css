@@ -1,0 +1,35 @@
+/* ========================================
+   ExpenseIQ — Sync Status Styles
+   ======================================== */
+
+.sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.sync-badge.synced {
+  background: var(--color-income-bg);
+  color: var(--color-income);
+}
+
+.sync-badge.syncing {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.sync-badge.offline {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.sync-badge.error {
+  background: var(--color-expense-bg);
+  color: var(--color-expense);
+}
