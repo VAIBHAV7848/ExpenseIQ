@@ -16,10 +16,10 @@ const Settings = {
             <div class="settings-row-label">Dark Theme</div>
             <div class="settings-row-desc">Enable dark mode for a better nighttime experience.</div>
           </div>
-          <div class="settings-row-control toggle-switch">
+          <label class="settings-row-control toggle-switch">
              <input type="checkbox" id="set-theme" ${settings.theme === 'dark' ? 'checked' : ''}>
              <div class="toggle-slider"></div>
-          </div>
+          </label>
         </div>
       </div>
 
@@ -58,10 +58,10 @@ const Settings = {
             <div class="settings-row-label">Overspending Alerts</div>
             <div class="settings-row-desc">Show warnings when nearing budget limits.</div>
           </div>
-          <div class="settings-row-control toggle-switch">
+          <label class="settings-row-control toggle-switch">
              <input type="checkbox" id="set-alert" ${settings.notifications.overspending ? 'checked' : ''}>
              <div class="toggle-slider"></div>
-          </div>
+          </label>
         </div>
       </div>
 
