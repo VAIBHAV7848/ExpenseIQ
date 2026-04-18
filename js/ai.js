@@ -100,38 +100,40 @@ const AI = {
       'Give concise, practical, personalized advice. Be friendly. ' +
       'Keep responses under 80 words. Use INR (₹) and Indian financial context.';
 
-    let history = conversationHistory.slice(-15);
-    
-    // Assemble raw messages
-    const rawMessages = [
-      { role: 'system', content: systemPrompt },
-      ...history,
-      { role: 'user', content: userMessage }
-    ];
+    // GUARANTEED PURITY of messages payload
+    const rawMessages = [];
+    rawMessages.push({ role: 'system', content: systemPrompt });
 
-    // LLaMA API requires: 1. System first. 2. First non-system must be User. 3. Strictly alternating roles.
-    const messages = [rawMessages[0]]; // Always starts with system
+    // Safely ingest history, ignoring any malformed entries
+    const history = conversationHistory.slice(-10);
+    history.forEach(msg => {
+      if (msg && msg.content && typeof msg.content === 'string' && (msg.role === 'user' || msg.role === 'assistant')) {
+        rawMessages.push({ role: msg.role, content: msg.content.trim() });
+      }
+    });
+
+    // Safely append the current user message
+    if (userMessage && typeof userMessage === 'string') {
+      rawMessages.push({ role: 'user', content: userMessage.trim() });
+    }
+
+    // STRICT Groq LLaMA 3 constraint enforcement pass
+    const safeMessages = [rawMessages[0]]; // Always start with system
     
     for (let i = 1; i < rawMessages.length; i++) {
-      const msg = rawMessages[i];
-      // Skip empty or invalid messages
-      if (!msg.content || !msg.content.trim()) continue;
-      
-      const lastMsg = messages[messages.length - 1];
-      
-      if (lastMsg.role === 'system' && msg.role !== 'user') {
-        // First message after system MUST be user (skip if assistant)
-        continue;
-      }
-      
-      if (msg.role === lastMsg.role) {
-        // Consecutive same-role messages are combined to prevent 400 errors
-        if (msg.content !== lastMsg.content) {
-          lastMsg.content += '\\n' + msg.content;
+        const currentRole = rawMessages[i].role;
+        const previousRole = safeMessages[safeMessages.length - 1].role;
+        
+        // Skip assistant message if it immediately follows system (LLaMA strict rule: first must be user!)
+        if (previousRole === 'system' && currentRole === 'assistant') continue;
+        
+        if (currentRole === previousRole) {
+            // Append content with a newline to prevent consecutive role violation
+            safeMessages[safeMessages.length - 1].content += '\\n' + rawMessages[i].content;
+        } else {
+            // Safe to push new perfect role
+            safeMessages.push({ role: currentRole, content: rawMessages[i].content });
         }
-      } else {
-        messages.push(msg);
-      }
     }
 
     if (!this.isAvailable()) return null;
@@ -142,7 +144,7 @@ const AI = {
           'Authorization': 'Bearer ' + CONFIG.GROQ_API_KEY,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ model: 'llama3-8b-8192', max_tokens: 200, messages })
+        body: JSON.stringify({ model: 'llama3-8b-8192', max_tokens: 200, messages: safeMessages })
       });
       const data = await response.json();
       return data.choices[0].message.content.trim();
