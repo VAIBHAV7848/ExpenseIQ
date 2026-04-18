@@ -3,7 +3,7 @@
    Cache-first for static assets, network-only for APIs
    ======================================== */
 
-const CACHE_NAME = 'expenseiq-v12';
+const CACHE_NAME = 'expenseiq-v13';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -99,8 +99,8 @@ self.addEventListener('fetch', event => {
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
-        // Only cache successful same-origin responses
-        if (response.ok && url.origin === self.location.origin) {
+        // Only cache successful same-origin GET responses
+        if (response.ok && url.origin === self.location.origin && event.request.method === 'GET') {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
