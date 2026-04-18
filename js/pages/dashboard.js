@@ -158,6 +158,7 @@ const Dashboard = {
     this.renderRecentTransactions();
     this.renderBudgetMini();
     this.loadAIInsights();
+    this._checkOnboarding();
   },
 
   _animateSavRate(el, target) {
@@ -278,5 +279,108 @@ const Dashboard = {
         </div>
       `;
     }).join('');
+  },
+
+  // Gap 10 — Onboarding Tooltip Sequence
+  _checkOnboarding() {
+    if (localStorage.getItem('expenseiq_onboarded')) return;
+    const txnCount = Store.getTransactions().length;
+    if (txnCount > 5) return; // Skip for returning users with data
+
+    setTimeout(() => {
+      const steps = [
+        {
+          targetId: null,
+          title: '👋 Welcome to ExpenseIQ!',
+          text: 'Your AI-powered personal finance tracker.' +
+            ' Let\'s take a quick tour.',
+          btnText: 'Start Tour →'
+        },
+        {
+          targetId: 'sidebar',
+          title: '📊 Navigate Pages',
+          text: 'Use the sidebar to access Transactions, ' +
+            'Reports, Budgets, Goals, and Debts.',
+          btnText: 'Next →'
+        },
+        {
+          targetId: 'header',
+          title: '🔄 Real-Time Sync',
+          text: 'Changes sync instantly across all your devices. ' +
+            'The badge shows sync status.',
+          btnText: 'Next →'
+        },
+        {
+          targetId: 'ai-chat-fab',
+          title: '✨ AI Advisor',
+          text: 'Tap the chat bubble to ask your AI advisor ' +
+            'anything about your finances.',
+          btnText: 'Done!'
+        }
+      ];
+
+      let current = 0;
+
+      const overlay = document.createElement('div');
+      overlay.id = 'onboarding-overlay';
+      overlay.style.cssText =
+        'position:fixed;inset:0;background:rgba(0,0,0,0.5);' +
+        'z-index:10000;display:flex;align-items:center;' +
+        'justify-content:center;';
+
+      const box = document.createElement('div');
+      box.style.cssText =
+        'background:var(--bg-primary,#1e293b);' +
+        'border:1px solid var(--accent-primary,#6366f1);' +
+        'border-radius:12px;padding:24px;max-width:320px;' +
+        'width:90%;text-align:center;' +
+        'box-shadow:0 20px 60px rgba(0,0,0,0.5);';
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+
+      const render = () => {
+        const step = steps[current];
+        box.innerHTML =
+          '<div style="font-size:28px;margin-bottom:12px;">' +
+            step.title.split(' ')[0] + '</div>' +
+          '<h3 style="margin:0 0 8px;color:var(--text-primary,#f1f5f9);' +
+            'font-size:16px;">' +
+            step.title.slice(step.title.indexOf(' ')+1) + '</h3>' +
+          '<p style="color:var(--text-secondary,#94a3b8);' +
+            'font-size:13px;margin:0 0 20px;line-height:1.5;">' +
+            step.text + '</p>' +
+          '<div style="display:flex;gap:8px;justify-content:center;">' +
+            '<button id="ob-skip" style="padding:8px 16px;' +
+              'background:transparent;border:1px solid ' +
+              'var(--border,#334155);color:var(--text-secondary,#94a3b8);' +
+              'border-radius:6px;cursor:pointer;font-size:12px;">' +
+              'Skip</button>' +
+            '<button id="ob-next" style="padding:8px 20px;' +
+              'background:var(--accent-primary,#6366f1);color:white;' +
+              'border:none;border-radius:6px;cursor:pointer;' +
+              'font-size:13px;font-weight:600;">' +
+              step.btnText + '</button>' +
+          '</div>' +
+          '<div style="margin-top:12px;font-size:11px;' +
+            'color:var(--text-muted,#475569);">' +
+            (current+1) + ' / ' + steps.length + '</div>';
+
+        document.getElementById('ob-next').onclick = () => {
+          current++;
+          if (current >= steps.length) {
+            document.body.removeChild(overlay);
+            localStorage.setItem('expenseiq_onboarded', 'true');
+          } else {
+            render();
+          }
+        };
+        document.getElementById('ob-skip').onclick = () => {
+          document.body.removeChild(overlay);
+          localStorage.setItem('expenseiq_onboarded', 'true');
+        };
+      };
+
+      render();
+    }, 1500); // Delay so dashboard renders first
   }
 };

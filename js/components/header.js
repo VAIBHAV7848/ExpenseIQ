@@ -35,6 +35,17 @@ const Header = {
           <div class="header-search-shortcut">/</div>
         </div>
 
+        <button id="voice-mic-btn" class="btn btn-ghost btn-icon"
+          onclick="window.startVoiceInput && window.startVoiceInput()"
+          title="Voice Input" style="display:none;">
+          <i data-lucide="mic"></i>
+        </button>
+        <div id="voice-indicator" style="display:none;align-items:center;
+          gap:4px;font-size:11px;color:var(--color-expense);">
+          <span class="voice-pulse"></span>
+          <span>REC</span>
+        </div>
+
         <div id="sync-status-badge" class="sync-badge synced" title="Sync Status">
           ✓ Synced
         </div>
