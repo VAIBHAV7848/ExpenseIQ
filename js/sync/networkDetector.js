@@ -48,9 +48,10 @@ class NetworkDetector extends EventTarget {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
 
-      const response = await fetch(CONFIG.SUPABASE_URL, {
+      const response = await fetch(window.location.origin + '/manifest.json?ping=' + Date.now(), {
         method: 'HEAD',
-        signal: controller.signal
+        signal: controller.signal,
+        cache: 'no-store'
       });
 
       clearTimeout(timeout);
