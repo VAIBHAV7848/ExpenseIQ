@@ -100,16 +100,39 @@ const AI = {
       'Give concise, practical, personalized advice. Be friendly. ' +
       'Keep responses under 80 words. Use INR (₹) and Indian financial context.';
 
-    let history = conversationHistory.slice(-10);
-    if (history.length > 0 && history[history.length-1].role === 'user' && history[history.length-1].content === userMessage) {
-      history.pop();
-    }
-
-    const messages = [
+    let history = conversationHistory.slice(-15);
+    
+    // Assemble raw messages
+    const rawMessages = [
       { role: 'system', content: systemPrompt },
       ...history,
       { role: 'user', content: userMessage }
     ];
+
+    // LLaMA API requires: 1. System first. 2. First non-system must be User. 3. Strictly alternating roles.
+    const messages = [rawMessages[0]]; // Always starts with system
+    
+    for (let i = 1; i < rawMessages.length; i++) {
+      const msg = rawMessages[i];
+      // Skip empty or invalid messages
+      if (!msg.content || !msg.content.trim()) continue;
+      
+      const lastMsg = messages[messages.length - 1];
+      
+      if (lastMsg.role === 'system' && msg.role !== 'user') {
+        // First message after system MUST be user (skip if assistant)
+        continue;
+      }
+      
+      if (msg.role === lastMsg.role) {
+        // Consecutive same-role messages are combined to prevent 400 errors
+        if (msg.content !== lastMsg.content) {
+          lastMsg.content += '\\n' + msg.content;
+        }
+      } else {
+        messages.push(msg);
+      }
+    }
 
     if (!this.isAvailable()) return null;
     try {
