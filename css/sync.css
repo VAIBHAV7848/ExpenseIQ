@@ -33,3 +33,12 @@
   background: var(--color-expense-bg);
   color: var(--color-expense);
 }
+
+.voice-pulse {
+  width: 8px; height: 8px; background: #ef4444;
+  border-radius: 50%; animation: voicePulse 1s infinite;
+}
+@keyframes voicePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.3); }
+}

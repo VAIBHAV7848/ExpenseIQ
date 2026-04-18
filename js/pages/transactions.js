@@ -24,9 +24,14 @@ const Transactions = {
     content.innerHTML = `
       <div class="transactions-header">
         <div></div>
-        <button class="btn btn-primary animate-fade-in-right" onclick="window.showAddTransactionModal()">
-          <i data-lucide="plus"></i> Add New
-        </button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary animate-fade-in-right" onclick="window.showAddTransactionModal()">
+            <i data-lucide="plus"></i> Add New
+          </button>
+          <button class="btn btn-secondary animate-fade-in-right" style="animation-delay:50ms;" onclick="Transactions.exportCSV()">
+            <i data-lucide="download"></i> CSV
+          </button>
+        </div>
       </div>
 
       <div class="transactions-filters animate-fade-in-up" style="animation-delay: 50ms">
@@ -96,6 +101,13 @@ const Transactions = {
           }
         }
       });
+    };
+
+    // Gap 1 — Edit transaction handler
+    window.editTxn = (id) => {
+      const txn = Store.getTransactions().find(t => t.id === id);
+      if (!txn) return;
+      window.showEditTransactionModal(txn);
     };
   },
 
@@ -173,9 +185,15 @@ const Transactions = {
                 <div class="transaction-details">
                   <div class="transaction-name">${Utils.escapeHtml(t.description)}</div>
                   <div class="transaction-category">${cat ? cat.name : 'Unknown'}</div>
+                  ${t.split_group_id ?
+                    '<span style="font-size:10px; background:var(--accent-primary);color:white; padding:1px 5px; border-radius:3px;">Split</span>'
+                    : ''}
                 </div>
                 <div class="transaction-amount ${t.type}">${t.type === 'income' ? '+' : '-'}${Utils.formatCurrency(t.amount)}</div>
                 <div class="transaction-actions">
+                  <button class="btn btn-ghost btn-icon" onclick="window.editTxn('${t.id}')" title="Edit">
+                    <i data-lucide="edit-3"></i>
+                  </button>
                   <button class="btn btn-ghost btn-icon" onclick="window.deleteTxn('${t.id}')" title="Delete">
                     <i data-lucide="trash-2"></i>
                   </button>
@@ -189,5 +207,39 @@ const Transactions = {
 
     listEl.innerHTML = html;
     if (window.lucide) lucide.createIcons();
+  },
+
+  // Gap 5 — CSV Export
+  exportCSV() {
+    const txns = Store.getTransactions(this.currentFilters);
+    if (txns.length === 0) {
+      Toast.warning('No Data', 'No transactions to export.');
+      return;
+    }
+    const header = ['Date','Type','Category',
+      'Description','Amount','Notes'];
+    const rows = txns.map(t => {
+      const cat = Store.getCategory(t.category);
+      return [
+        t.date,
+        t.type,
+        cat ? cat.name : t.category,
+        '"' + (t.description || '').replace(/"/g, '""') + '"',
+        t.amount,
+        '"' + (t.notes || '').replace(/"/g, '""') + '"'
+      ].join(',');
+    });
+    const csv = [header.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const month = this.currentFilters.startDate
+      ? this.currentFilters.startDate.slice(0,7)
+      : Utils.toMonthString(new Date());
+    a.download = 'ExpenseIQ_' + month + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    Toast.success('Exported', txns.length + ' transactions saved.');
   }
 };

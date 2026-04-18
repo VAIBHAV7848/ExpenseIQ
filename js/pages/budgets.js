@@ -101,6 +101,18 @@ const Budgets = {
         <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">
           Set monthly spending limits for each category. Leave blank for no limit.
         </div>
+        ${AI.isAvailable() ? `
+        <div style="margin-bottom:16px;">
+          <button class="btn btn-secondary btn-sm" id="btn-ai-budget"
+            style="width:100%;border:1px dashed var(--accent-primary);">
+            <span style="font-size:14px;">✨</span>
+            AI Suggest Budget (based on your last 2 months)
+          </button>
+          <div id="ai-budget-status" style="font-size:11px;
+            color:var(--text-secondary);margin-top:4px;
+            text-align:center;"></div>
+        </div>
+        ` : ''}
         <form id="budget-form">
           <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             ${expCats.map(cat => `
@@ -122,6 +134,46 @@ const Budgets = {
       onRender: (modalEl) => {
         if (window.lucide) lucide.createIcons();
         document.getElementById('cancel-budget-btn').addEventListener('click', () => Modal.close());
+
+        // Gap 8 — AI Budget Suggestion
+        document.getElementById('btn-ai-budget')
+          ?.addEventListener('click', async () => {
+            const btn = document.getElementById('btn-ai-budget');
+            const status = document.getElementById('ai-budget-status');
+            btn.disabled = true;
+            btn.textContent = '⏳ Analyzing your spending...';
+            if (status) status.textContent = '';
+
+            const suggested = await AI.suggestBudget();
+
+            btn.disabled = false;
+            btn.innerHTML =
+              '<span style="font-size:14px;">✨</span>' +
+              ' AI Suggest Budget (based on your last 2 months)';
+
+            if (suggested) {
+              // Fill all inputs with suggested values
+              Object.entries(suggested).forEach(([catId, amt]) => {
+                const input = modalEl.querySelector(
+                  'input[name="cat_' + catId + '"]');
+                if (input) input.value = Math.round(amt);
+              });
+              if (status) {
+                status.textContent =
+                  '✓ AI filled in suggested limits — ' +
+                  'review and adjust before saving.';
+                status.style.color = 'var(--color-income)';
+              }
+              Toast.info('AI Suggested',
+                'Review the suggested limits and click Save.');
+            } else {
+              if (status) {
+                status.textContent =
+                  '✕ Not enough data. Add more transactions first.';
+                status.style.color = 'var(--color-expense)';
+              }
+            }
+          });
         
         document.getElementById('save-budget-btn').addEventListener('click', () => {
           const form = document.getElementById('budget-form');
