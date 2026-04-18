@@ -16,51 +16,51 @@ const Settings = {
     const avatarUrl = meta.avatar_url || meta.picture || '';
 
     let avatarHtml = avatarUrl 
-      ? \`<img src="\${Utils.escapeHtml(avatarUrl)}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">\`
+      ? `<img src="${Utils.escapeHtml(avatarUrl)}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`
       : primaryName.charAt(0).toUpperCase();
 
-    content.innerHTML = \`
+    content.innerHTML = `
       <div class="settings-section animate-fade-in-up" style="animation-delay: 30ms;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
           <h3 class="settings-section-title" style="margin-bottom:0;"><i data-lucide="user"></i> Account Profile</h3>
-          \${!isGuest ? '<button class="btn btn-ghost btn-sm" id="btn-edit-profile"><i data-lucide="edit-3"></i> Edit</button>' : ''}
+          ${!isGuest ? '<button class="btn btn-ghost btn-sm" id="btn-edit-profile"><i data-lucide="edit-3"></i> Edit</button>' : ''}
         </div>
         
         <div class="settings-row" id="profile-view-mode">
           <div style="display:flex; align-items:center; gap:16px;">
             <div style="width:56px;height:56px;border-radius:50%;background:var(--accent-primary);display:flex;align-items:center;justify-content:center;font-size:24px;color:white;font-weight:bold;box-shadow:0 4px 12px rgba(79,70,229,0.2);">
-              \${avatarHtml}
+              ${avatarHtml}
             </div>
             <div>
-              <div style="font-weight:600;font-size:18px;color:var(--text-primary);">\${Utils.escapeHtml(primaryName)}</div>
-              <div style="font-size:13px;color:var(--text-secondary); margin-top:2px;">\${email}</div>
+              <div style="font-weight:600;font-size:18px;color:var(--text-primary);">${Utils.escapeHtml(primaryName)}</div>
+              <div style="font-size:13px;color:var(--text-secondary); margin-top:2px;">${email}</div>
               <div style="font-size:11px;color:var(--text-muted); margin-top:4px;">
-                <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:\${isGuest ? '#f59e0b' : '#10b981'};margin-right:4px;"></span>
-                \${isGuest ? 'Local Account — Data is not synced' : 'Cloud Account — Synced with Supabase'}
+                <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${isGuest ? '#f59e0b' : '#10b981'};margin-right:4px;"></span>
+                ${isGuest ? 'Local Account — Data is not synced' : 'Cloud Account — Synced with Supabase'}
               </div>
             </div>
           </div>
           <div class="settings-row-control">
-            \${!isGuest ? '<button class="btn btn-secondary btn-sm" id="btn-logout">Sign Out</button>' : '<button class="btn btn-primary btn-sm" onclick="location.hash=\\'#/login\\'">Sign In</button>'}
+            ${!isGuest ? '<button class="btn btn-secondary btn-sm" id="btn-logout">Sign Out</button>' : '<button class="btn btn-primary btn-sm" onclick="location.hash=\'#/login\'">Sign In</button>'}
           </div>
         </div>
 
-        \${!isGuest ? \`
+        ${!isGuest ? `
         <div class="settings-row" id="profile-edit-mode" style="display:none; flex-direction:column; align-items:flex-start; gap:12px;">
           <div class="form-group" style="width:100%;">
             <label class="form-label">Display Name</label>
-            <input type="text" id="edit-profile-name" class="form-input" value="\${Utils.escapeHtml(primaryName)}">
+            <input type="text" id="edit-profile-name" class="form-input" value="${Utils.escapeHtml(primaryName)}">
           </div>
           <div class="form-group" style="width:100%;">
             <label class="form-label">Avatar URL (Optional)</label>
-            <input type="text" id="edit-profile-avatar" class="form-input" placeholder="https://..." value="\${Utils.escapeHtml(avatarUrl)}">
+            <input type="text" id="edit-profile-avatar" class="form-input" placeholder="https://..." value="${Utils.escapeHtml(avatarUrl)}">
           </div>
           <div style="display:flex; gap:8px; width:100%; justify-content:flex-end;">
             <button class="btn btn-ghost btn-sm" id="btn-cancel-profile">Cancel</button>
             <button class="btn btn-primary btn-sm" id="btn-save-profile">Save Changes</button>
           </div>
         </div>
-        \` : ''}
+        ` : ''}
       </div>
 
       <div class="settings-section animate-fade-in-up" style="animation-delay: 50ms;">
