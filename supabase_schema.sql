@@ -245,3 +245,32 @@ ON CONFLICT (id) DO NOTHING;
 -- ALTER PUBLICATION supabase_realtime ADD TABLE budgets;
 -- ALTER PUBLICATION supabase_realtime ADD TABLE goals;
 -- ALTER PUBLICATION supabase_realtime ADD TABLE debts;
+- -   = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =  
+ - -   P u s h   S u b s c r i p t i o n s  
+ - -   S t o r e s   W e b   P u s h   b r o w s e r   e n d p o i n t s   u n i q u e l y   t i e d   t o   u s e r s  
+ - -   = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =  
+  
+ C R E A T E   T A B L E   I F   N O T   E X I S T S   p u b l i c . p u s h _ s u b s c r i p t i o n s   (  
+         i d   U U I D   P R I M A R Y   K E Y   D E F A U L T   u u i d _ g e n e r a t e _ v 4 ( ) ,  
+         u s e r _ i d   U U I D   R E F E R E N C E S   a u t h . u s e r s ( i d )   O N   D E L E T E   C A S C A D E   N O T   N U L L ,  
+         e n d p o i n t   T E X T   N O T   N U L L ,  
+         p 2 5 6 d h _ k e y   T E X T   N O T   N U L L ,  
+         a u t h _ k e y   T E X T   N O T   N U L L ,  
+         c r e a t e d _ a t   T I M E S T A M P   W I T H   T I M E   Z O N E   D E F A U L T   t i m e z o n e ( ' u t c ' : : t e x t ,   n o w ( ) )   N O T   N U L L ,  
+         U N I Q U E ( e n d p o i n t )  
+ ) ;  
+  
+ A L T E R   T A B L E   p u b l i c . p u s h _ s u b s c r i p t i o n s   E N A B L E   R O W   L E V E L   S E C U R I T Y ;  
+  
+ C R E A T E   P O L I C Y   " U s e r s   c a n   i n s e r t   t h e i r   o w n   s u b s c r i p t i o n s "  
+         O N   p u b l i c . p u s h _ s u b s c r i p t i o n s   F O R   I N S E R T  
+         W I T H   C H E C K   ( a u t h . u i d ( )   =   u s e r _ i d ) ;  
+  
+ C R E A T E   P O L I C Y   " U s e r s   c a n   v i e w   t h e i r   o w n   s u b s c r i p t i o n s "  
+         O N   p u b l i c . p u s h _ s u b s c r i p t i o n s   F O R   S E L E C T  
+         U S I N G   ( a u t h . u i d ( )   =   u s e r _ i d ) ;  
+  
+ C R E A T E   P O L I C Y   " U s e r s   c a n   d e l e t e   t h e i r   o w n   s u b s c r i p t i o n s "  
+         O N   p u b l i c . p u s h _ s u b s c r i p t i o n s   F O R   D E L E T E  
+         U S I N G   ( a u t h . u i d ( )   =   u s e r _ i d ) ;  
+ 

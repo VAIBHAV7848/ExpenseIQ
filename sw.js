@@ -3,7 +3,7 @@
    Cache-first for static assets, network-only for APIs
    ======================================== */
 
-const CACHE_NAME = 'expenseiq-v15';
+const CACHE_NAME = 'expenseiq-v16';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -112,6 +112,52 @@ self.addEventListener('fetch', event => {
         }
         return new Response('', { status: 503 });
       });
+    })
+  );
+});
+
+// ========================================
+// Web Push Notifications
+// ========================================
+
+self.addEventListener('push', (event) => {
+  let payload = { title: "ExpenseIQ", body: "New notification", icon: "/icons/icon-192x192.png" };
+  if (event.data) {
+    try {
+      payload = event.data.json();
+    } catch (e) {
+      payload.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: payload.body,
+    icon: payload.icon || '/icons/icon-192x192.png',
+    badge: '/icons/icon-72x72.png',
+    vibrate: [200, 100, 200, 100, 200],
+    data: payload.data || { url: '/' }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, options)
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then(windowClients => {
+      // Check if there is already a window/tab open with the target URL
+      for (let i = 0; i < windowClients.length; i++) {
+        let client = windowClients[i];
+        if (client.url.includes(event.notification.data?.url || '/') && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // If not, open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(event.notification.data?.url || '/');
+      }
     })
   );
 });

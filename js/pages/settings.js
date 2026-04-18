@@ -117,6 +117,28 @@ const Settings = {
              <div class="toggle-slider"></div>
           </label>
         </div>
+
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">System Push Notifications</div>
+            <div class="settings-row-desc">Receive native alerts on your device for critical events.</div>
+          </div>
+          <div class="settings-row-control">
+             <button class="btn btn-secondary btn-sm" id="btn-enable-push" ${Notification.permission === 'granted' ? 'disabled style="opacity:0.5;"' : ''}>
+               ${Notification.permission === 'granted' ? 'Enabled ✓' : 'Enable Push'}
+             </button>
+          </div>
+        </div>
+        ${Notification.permission === 'granted' ? `
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">Test Notification</div>
+            <div class="settings-row-desc">Send a test ping to your device right now.</div>
+          </div>
+          <div class="settings-row-control">
+             <button class="btn btn-ghost btn-sm" id="btn-test-push">Send Ping</button>
+          </div>
+        </div>` : ''}
       </div>
 
       <div class="settings-section animate-fade-in-up" style="animation-delay: 150ms;">
@@ -256,6 +278,24 @@ const Settings = {
       const s = Store.getSettings();
       s.notifications.overspending = e.target.checked;
       Store.updateSettings(s);
+    });
+
+    document.getElementById('btn-enable-push')?.addEventListener('click', async (e) => {
+      const btn = e.target;
+      btn.textContent = 'Requesting...';
+      const success = await Push.subscribe();
+      if (success) {
+        btn.textContent = 'Enabled ✓';
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        this.render();
+      } else {
+        btn.textContent = 'Enable Push';
+      }
+    });
+
+    document.getElementById('btn-test-push')?.addEventListener('click', () => {
+      Push.testNotification();
     });
 
     document.getElementById('btn-force-sync')?.addEventListener('click', async () => {
