@@ -23,7 +23,7 @@ const AI = {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'llama3-8b-8192',
+          model: 'llama-3.1-8b-instant',
           max_tokens: maxTokens,
           messages: [
             { role: 'system', content: systemPrompt },
@@ -144,7 +144,7 @@ const AI = {
           'Authorization': 'Bearer ' + CONFIG.GROQ_API_KEY,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ model: 'llama3-8b-8192', max_tokens: 200, messages: safeMessages })
+        body: JSON.stringify({ model: 'llama-3.1-8b-instant', max_tokens: 200, messages: safeMessages })
       });
       const data = await response.json();
       return data.choices[0].message.content.trim();
