@@ -79,12 +79,14 @@ const AiChat = {
     input.value = '';
 
     this.addMessage('user', message);
-    this._history.push({ role: 'user', content: message });
     this.showTyping();
 
+    // Pass clean history WITHOUT the current message
     const response = await AI.getFinancialAdvice(message, this._history.slice(-10));
     this.hideTyping();
 
+    // Save both the user message and assistant reply to history pairs simultaneously
+    this._history.push({ role: 'user', content: message });
     const reply = response || 'Sorry, I couldn\'t process that. Please try again.';
     this._history.push({ role: 'assistant', content: reply });
     this.addMessage('assistant', reply);
