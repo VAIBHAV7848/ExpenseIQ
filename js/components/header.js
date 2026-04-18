@@ -73,21 +73,25 @@ const Header = {
     const profileEl = document.getElementById('header-user-profile');
     if (!profileEl) return;
 
-    if (Auth.isAuthenticated()) {
+    if (Auth.isAuthenticated() && !Auth.isGuest()) {
       const user = Auth.getUser();
-      const avatarUrl = user?.user_metadata?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user?.email || 'User') + '&background=6366f1&color=fff';
+      const meta = user?.user_metadata || {};
+      const authEmail = user?.email || 'User';
+      const primaryName = meta.full_name || meta.name || authEmail.split('@')[0];
+      const avatarUrl = meta.avatar_url || meta.picture || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(primaryName) + '&background=6366f1&color=fff');
+      
       profileEl.innerHTML = `
-        <div style="display:flex; align-items:center; gap:var(--space-2); cursor:pointer;" onclick="Auth.signOut()" title="Sign Out">
-          <img src="${avatarUrl}" alt="Profile" class="avatar" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+        <div style="display:flex; align-items:center; gap:var(--space-2); cursor:pointer;" onclick="location.hash='#/settings'" title="Settings">
+          <img src="${Utils.escapeHtml(avatarUrl)}" alt="Profile" class="avatar" style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
           <div class="user-info hide-on-mobile" style="display:flex; flex-direction:column;">
-            <span style="font-size:var(--text-xs); font-weight:600;">${Utils.escapeHtml(user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User')}</span>
-            <span style="font-size:10px; color:var(--text-muted);">Sign Out</span>
+            <span style="font-size:var(--text-xs); font-weight:600;">${Utils.escapeHtml(primaryName)}</span>
+            <span style="font-size:10px; color:var(--text-muted);">Settings</span>
           </div>
         </div>
       `;
     } else {
       profileEl.innerHTML = `
-        <div style="display:flex; align-items:center; gap:var(--space-2); cursor:pointer;" onclick="Auth.signOut()" title="Sign In">
+        <div style="display:flex; align-items:center; gap:var(--space-2); cursor:pointer;" onclick="location.hash='#/login'" title="Sign In">
           <div class="avatar" style="width:36px; height:36px; border-radius:50%; background:var(--glass-bg); display:flex; align-items:center; justify-content:center;">
              <i data-lucide="user"></i>
           </div>
