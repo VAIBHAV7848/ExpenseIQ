@@ -100,9 +100,14 @@ const AI = {
       'Give concise, practical, personalized advice. Be friendly. ' +
       'Keep responses under 80 words. Use INR (₹) and Indian financial context.';
 
+    let history = conversationHistory.slice(-10);
+    if (history.length > 0 && history[history.length-1].role === 'user' && history[history.length-1].content === userMessage) {
+      history.pop();
+    }
+
     const messages = [
       { role: 'system', content: systemPrompt },
-      ...conversationHistory.slice(-10),
+      ...history,
       { role: 'user', content: userMessage }
     ];
 
