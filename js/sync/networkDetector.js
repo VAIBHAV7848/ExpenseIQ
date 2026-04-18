@@ -52,7 +52,8 @@ class NetworkDetector extends EventTarget {
         method: 'HEAD',
         signal: controller.signal,
         headers: {
-          'apikey': CONFIG.SUPABASE_ANON_KEY
+          'apikey': CONFIG.SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + CONFIG.SUPABASE_ANON_KEY
         }
       });
 
