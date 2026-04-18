@@ -9,6 +9,24 @@ const Settings = {
     const syncStatus = typeof syncEngine !== 'undefined' ? syncEngine.getStatus() : null;
 
     content.innerHTML = `
+      <div class="settings-section animate-fade-in-up" style="animation-delay: 30ms;">
+        <h3 class="settings-section-title"><i data-lucide="user"></i> Account Profile</h3>
+        <div class="settings-row">
+          <div style="display:flex; align-items:center; gap:16px;">
+            <div style="width:48px;height:48px;border-radius:50%;background:var(--accent-primary);display:flex;align-items:center;justify-content:center;font-size:20px;color:white;font-weight:bold;">
+              \${Auth.getUser()?.email ? Auth.getUser().email.charAt(0).toUpperCase() : 'G'}
+            </div>
+            <div>
+              <div style="font-weight:600;font-size:16px;">\${Auth.getUser()?.email || 'Guest User'}</div>
+              <div style="font-size:12px;color:var(--text-secondary);">\${Auth.isGuest() ? 'Local Account — Data is not synced' : 'Cloud Account — Synced with Supabase'}</div>
+            </div>
+          </div>
+          <div class="settings-row-control">
+            \${!Auth.isGuest() ? '<button class="btn btn-secondary btn-sm" id="btn-logout">Sign Out</button>' : '<button class="btn btn-primary btn-sm" onclick="location.hash=\\'#/login\\'">Sign In</button>'}
+          </div>
+        </div>
+      </div>
+
       <div class="settings-section animate-fade-in-up" style="animation-delay: 50ms;">
         <h3 class="settings-section-title"><i data-lucide="palette"></i> Appearance</h3>
         <div class="settings-row">
@@ -156,6 +174,11 @@ const Settings = {
   },
 
   bindEvents() {
+    document.getElementById('btn-logout')?.addEventListener('click', async () => {
+      await Auth.signOut();
+      location.hash = '#/login';
+    });
+
     document.getElementById('set-theme')?.addEventListener('change', (e) => {
       const t = e.target.checked ? 'dark' : 'light';
       Store.updateSettings({ theme: t });
