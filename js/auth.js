@@ -82,6 +82,16 @@ const Auth = {
     if (isGuest) EventBus.emit('auth:guest');
   },
 
+  async updateProfile(updates) {
+    if (!window.supabaseClient || !this.session) return { error: 'Not authenticated' };
+    const { data, error } = await supabaseClient.auth.updateUser({ data: updates });
+    if (!error && data?.user) {
+      this.session.user = data.user;
+      EventBus.emit('auth:changed', this.session);
+    }
+    return { data, error };
+  },
+
   isAuthenticated() {
     return !!this.session;
   },
