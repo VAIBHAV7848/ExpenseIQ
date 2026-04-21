@@ -218,6 +218,16 @@ const Settings = {
     if (window.lucide) lucide.createIcons();
     this.renderActivityLog();
     this.bindEvents();
+
+    // Gap 11 — Auto-trigger Edit Mode if redirected from SMS Prompt
+    if (sessionStorage.getItem('expenseiq_trigger_profile_edit')) {
+      sessionStorage.removeItem('expenseiq_trigger_profile_edit');
+      setTimeout(() => {
+        document.getElementById('btn-edit-profile')?.click();
+        // Optional: Focus the phone input
+        document.getElementById('edit-profile-phone')?.focus();
+      }, 500); 
+    }
   },
 
   renderActivityLog() {
