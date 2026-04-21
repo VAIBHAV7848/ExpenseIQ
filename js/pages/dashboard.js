@@ -386,20 +386,30 @@ const Dashboard = {
   },
 
   _checkSMSPrompt() {
-    // 1. Check if number is already set or prompt was dismissed in this session
-    if (sessionStorage.getItem('expenseiq_sms_prompt_dismissed')) return;
+    console.log('SMS Prompt: Checking eligibility...');
     
-    console.log('SMS Service: Checking for setup prompt...');
+    if (sessionStorage.getItem('expenseiq_sms_prompt_v2_dismissed')) {
+      console.log('SMS Prompt: Already dismissed in this session.');
+      return;
+    }
+    
     const user = Auth.getUser();
     const settings = Store.getSettings();
     const hasPhone = (user?.user_metadata?.phone_number) || (settings.profile?.phoneNumber);
     
+    console.log('SMS Prompt: hasPhone =', !!hasPhone);
     if (hasPhone) return;
 
-    // 2. Wait 5 seconds before showing (Reduced from 10s for better engagement)
+    // 2. Wait 5 seconds before showing
     setTimeout(() => {
+      const currentHash = location.hash || '#/';
+      console.log('SMS Prompt: Timer fired. Current hash:', currentHash);
+
       // Re-verify they are still on the dashboard
-      if (location.hash !== '#/' && location.hash !== '') return;
+      if (currentHash !== '#/' && currentHash !== '' && currentHash !== '#') {
+        console.log('SMS Prompt: Not on dashboard anymore. aborting.');
+        return;
+      }
       if (document.getElementById('sms-prompt-card')) return;
 
       const card = document.createElement('div');
@@ -407,15 +417,15 @@ const Dashboard = {
       card.className = 'sms-prompt-card';
       card.innerHTML = `
         <div class="sms-prompt-header">
-          <div class="sms-prompt-icon"><i data-lucide="bell-ring"></i></div>
+          <div class="sms-prompt-icon"><i data-lucide="message-square"></i></div>
           <div class="sms-prompt-title">Enable SMS Alerts</div>
         </div>
         <div class="sms-prompt-text">
           Want real-time bank-style alerts for your transactions? Set up your phone number now.
         </div>
         <div class="sms-prompt-actions">
-          <button class="btn-pro-ghost" id="btn-sms-later">Maybe Later</button>
-          <button class="btn-pro-primary" id="btn-sms-continue">Continue Setup</button>
+          <button class="btn btn-ghost btn-sm" id="btn-sms-later">Maybe Later</button>
+          <button class="btn btn-primary btn-sm" id="btn-sms-continue">Continue Setup</button>
         </div>
       `;
 
@@ -427,16 +437,8 @@ const Dashboard = {
         card.style.opacity = '0';
         card.style.transform = 'translateY(20px)';
         setTimeout(() => card.remove(), 300);
-        sessionStorage.setItem('expenseiq_sms_prompt_dismissed', 'true');
+        sessionStorage.setItem('expenseiq_sms_prompt_v2_dismissed', 'true');
       };
-
-      document.getElementById('btn-sms-continue').onclick = () => {
-        sessionStorage.setItem('expenseiq_trigger_profile_edit', 'true');
-        card.remove();
-        location.hash = '#/settings';
-      };
-    }, 5000);
-  }
 
       document.getElementById('btn-sms-continue').onclick = () => {
         sessionStorage.setItem('expenseiq_trigger_profile_edit', 'true');
