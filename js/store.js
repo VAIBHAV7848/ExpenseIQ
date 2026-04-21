@@ -120,7 +120,8 @@ const Store = {
       theme: 'dark', currency: 'INR', currencySymbol: '₹', locale: 'en-IN',
       dateFormat: 'DD/MM/YYYY', startOfWeek: 'monday', defaultView: 'dashboard',
       notifications: { overspending: true, dailySummary: false, weeklyReport: true },
-      budgetAlertThresholds: [80, 90, 100]
+      budgetAlertThresholds: [80, 90, 100],
+      profile: { name: '', phoneNumber: '', avatarUrl: '' }
     };
   },
 

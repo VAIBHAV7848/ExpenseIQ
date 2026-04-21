@@ -9,13 +9,15 @@ const SMS = {
    */
   async notify(txn) {
     // 1. Safety checks
-    if (!Auth || Auth.isGuest() || !Auth.isAuthenticated()) return;
-    
+    const isGuest = Auth.isGuest();
     const user = Auth.getUser();
-    const phoneNumber = user?.user_metadata?.phone_number;
+    const settings = Store.getSettings();
+    
+    // Get phone number from either Cloud Profile or Local Guest Profile
+    const phoneNumber = isGuest ? settings.profile?.phoneNumber : user?.user_metadata?.phone_number;
     
     if (!phoneNumber) {
-      console.log('SMS Service: User has no registered phone number. Skipping.');
+      console.log('SMS Service: No registered phone number found. skipping.');
       return;
     }
 
