@@ -27,6 +27,10 @@ const SMS = {
       phoneNumber = '+' + phoneNumber;
     }
 
+    // Get totals for "Real Bank" style balance reporting
+    const totals = Store.getTotals();
+    const accountLabel = isGuest ? 'Guest' : (user?.id ? user.id.split('-')[0].toUpperCase() : 'User');
+
     // 2. Prepare payload
     const payload = {
       phone_number: phoneNumber,
@@ -34,7 +38,13 @@ const SMS = {
       type: txn.type,
       category: Store.getCategory(txn.category)?.name || txn.category,
       timestamp: txn.created_at || new Date().toISOString(),
-      description: txn.description
+      formatted_time: new Date().toLocaleString('en-IN', { 
+        day: '2-digit', month: 'short', year: '2-digit', 
+        hour: '2-digit', minute: '2-digit', hour12: true 
+      }),
+      description: txn.description,
+      balance: totals.balance,
+      account_label: accountLabel
     };
 
     // 3. Invoke Supabase Edge Function
