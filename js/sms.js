@@ -56,13 +56,19 @@ const SMS = {
         console.error('SMS Service: [LOGICAL_ERROR]', data.error, data.detail);
       }
     } catch (err) {
-      // Rule 7: If SMS sending fails, do not break the transaction flow.
-      // Rule 8: Log SMS failures safely without exposing secrets.
-      console.warn('SMS Service Error:', err.message || 'Unknown error');
+      // 4. Detailed Error Handling
+      const errMsg = err.message || 'Unknown error';
+      
+      if (errMsg.includes('INTERNET_DISCONNECTED') || errMsg.includes('Failed to fetch')) {
+        console.error('SMS Service: [OFFLINE] Network connection blocked or unavailable.');
+        Toast.error('Network Error', 'Could not reach SMS service. Please check your internet connection.');
+      } else {
+        console.warn('SMS Service Error:', errMsg);
+      }
       
       // Optional: Add an activity log entry for the failure
       if (Store && Store._logActivity) {
-        Store._logActivity('Failed to send SMS notification: ' + (err.message || 'Network error'));
+        Store._logActivity('SMS Notification Failed: ' + errMsg);
       }
     }
   }
