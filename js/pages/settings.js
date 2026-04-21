@@ -12,9 +12,11 @@ const Settings = {
     const isGuest = Auth.isGuest();
     const email = user?.email || 'Guest User';
     const meta = user?.user_metadata || {};
-    const primaryName = meta.full_name || meta.name || (email !== 'Guest User' ? email.split('@')[0] : 'Guest User');
-    const avatarUrl = meta.avatar_url || meta.picture || '';
-    const phoneNumber = meta.phone_number || '';
+    const localProfile = settings.profile || {};
+    
+    const primaryName = isGuest ? (localProfile.name || 'Guest User') : (meta.full_name || meta.name || (email !== 'Guest User' ? email.split('@')[0] : 'Guest User'));
+    const avatarUrl = isGuest ? (localProfile.avatarUrl || '') : (meta.avatar_url || meta.picture || '');
+    const phoneNumber = isGuest ? (localProfile.phoneNumber || '') : (meta.phone_number || '');
 
     let avatarHtml = avatarUrl 
       ? `<img src="${Utils.escapeHtml(avatarUrl)}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`
@@ -24,7 +26,7 @@ const Settings = {
       <div class="settings-section animate-fade-in-up" style="animation-delay: 30ms;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
           <h3 class="settings-section-title" style="margin-bottom:0;"><i data-lucide="user"></i> Account Profile</h3>
-          ${!isGuest ? '<button class="btn btn-ghost btn-sm" id="btn-edit-profile"><i data-lucide="edit-3"></i> Edit</button>' : ''}
+          <button class="btn btn-ghost btn-sm" id="btn-edit-profile"><i data-lucide="edit-3"></i> Edit</button>
         </div>
         
         <div class="settings-row" id="profile-view-mode">
@@ -46,7 +48,6 @@ const Settings = {
           </div>
         </div>
 
-        ${!isGuest ? `
         <div class="settings-row" id="profile-edit-mode" style="display:none; flex-direction:column; align-items:flex-start; gap:12px;">
           <div class="form-group" style="width:100%;">
             <label class="form-label">Display Name</label>
@@ -65,7 +66,6 @@ const Settings = {
             <button class="btn btn-primary btn-sm" id="btn-save-profile">Save Changes</button>
           </div>
         </div>
-        ` : ''}
       </div>
 
       <div class="settings-section animate-fade-in-up" style="animation-delay: 50ms;">
@@ -252,19 +252,29 @@ const Settings = {
 
     document.getElementById('btn-save-profile')?.addEventListener('click', async () => {
       const btn = document.getElementById('btn-save-profile');
+      const isGuest = Auth.isGuest();
       btn.textContent = 'Saving...';
       btn.disabled = true;
       const newName = document.getElementById('edit-profile-name').value.trim();
       const newAvatar = document.getElementById('edit-profile-avatar').value.trim();
       const newPhone = document.getElementById('edit-profile-phone').value.trim();
-      const { error } = await Auth.updateProfile({ full_name: newName, avatar_url: newAvatar, phone_number: newPhone });
-      if (error) {
-        Toast.error('Update Failed', error.message);
-        btn.textContent = 'Save Changes';
-        btn.disabled = false;
-      } else {
-        Toast.success('Profile Updated', 'Your profile details have been saved.');
+
+      if (isGuest) {
+        const settings = Store.getSettings();
+        settings.profile = { name: newName, avatarUrl: newAvatar, phoneNumber: newPhone };
+        Store.updateSettings(settings);
+        Toast.success('Profile Saved', 'Guest profile updated locally.');
         this.render();
+      } else {
+        const { error } = await Auth.updateProfile({ full_name: newName, avatar_url: newAvatar, phone_number: newPhone });
+        if (error) {
+          Toast.error('Update Failed', error.message);
+          btn.textContent = 'Save Changes';
+          btn.disabled = false;
+        } else {
+          Toast.success('Profile Updated', 'Your profile details have been saved.');
+          this.render();
+        }
       }
     });
 
