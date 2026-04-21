@@ -20,8 +20,10 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Missing phone number" }), { status: 400 });
     }
 
+    console.log(`[send-sms] Payload: phone=${phone_number}, amt=${amount}, type=${type}`);
+
     if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
-      console.error("Twilio credentials missing in environment variables.");
+      console.error("[send-sms] CONFIG ERROR: Twilio credentials missing.");
       return new Response(JSON.stringify({ error: "Server configuration error" }), { status: 500 });
     }
 
@@ -33,9 +35,12 @@ serve(async (req) => {
       message = `Debit of ₹${amount} recorded successfully.`;
     }
 
-    message += `\nCategory: ${category}`;
+    const catName = category || 'Other';
+    message += `\nCategory: ${catName}`;
     if (description) message += `\nNote: ${description}`;
     message += `\nTime: ${new Date(timestamp).toLocaleString('en-IN')}`;
+
+    console.log(`[send-sms] Message: "${message.replace(/\n/g, ' ')}"`);
 
     // Twilio API call
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
@@ -46,6 +51,7 @@ serve(async (req) => {
     params.append('From', TWILIO_PHONE_NUMBER);
     params.append('Body', message);
 
+    console.log(`[send-sms] Calling Twilio API for ${phone_number}...`);
     const response = await fetch(twilioUrl, {
       method: 'POST',
       headers: {
@@ -58,9 +64,11 @@ serve(async (req) => {
     const result = await response.json();
 
     if (!response.ok) {
-      console.error("Twilio SMS Failure:", result.message || response.statusText);
-      return new Response(JSON.stringify({ error: "Failed to send SMS", detail: result.message }), { status: response.status });
+      console.error("[send-sms] Twilio Error:", result.code, result.message);
+      return new Response(JSON.stringify({ error: "Twilio Error", detail: result.message, code: result.code }), { status: response.status });
     }
+
+    console.log("[send-sms] SUCCESS: SMS queued. SID:", result.sid);
 
     return new Response(JSON.stringify({ success: true, sid: result.sid }), {
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
