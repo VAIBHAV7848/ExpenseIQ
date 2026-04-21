@@ -14,11 +14,17 @@ const SMS = {
     const settings = Store.getSettings();
     
     // Get phone number from either Cloud Profile or Local Guest Profile
-    const phoneNumber = isGuest ? settings.profile?.phoneNumber : user?.user_metadata?.phone_number;
+    let phoneNumber = isGuest ? settings.profile?.phoneNumber : user?.user_metadata?.phone_number;
     
     if (!phoneNumber) {
-      console.log('SMS Service: No registered phone number found. skipping.');
+      console.warn('SMS Service: [ABORT] No registered phone number found for user', isGuest ? 'Guest' : user?.id);
       return;
+    }
+
+    // Normalize phone number (Ensure E.164 format with +)
+    phoneNumber = phoneNumber.trim();
+    if (!phoneNumber.startsWith('+')) {
+      phoneNumber = '+' + phoneNumber;
     }
 
     // 2. Prepare payload
@@ -40,10 +46,15 @@ const SMS = {
       });
 
       if (error) {
+        console.error('SMS Service: [EDGE_FUNC_ERROR]', error);
         throw error;
       }
 
-      console.log('SMS Service: Successfully sent SMS.', data.sid);
+      if (data && data.success) {
+        console.log('SMS Service: [SUCCESS] Sent SMS. SID:', data.sid);
+      } else if (data && data.error) {
+        console.error('SMS Service: [LOGICAL_ERROR]', data.error, data.detail);
+      }
     } catch (err) {
       // Rule 7: If SMS sending fails, do not break the transaction flow.
       // Rule 8: Log SMS failures safely without exposing secrets.
