@@ -297,51 +297,27 @@
   .filter-date-input, .filter-amount-input { max-width: 100%; }
   .toast-container { max-width: 320px; right: 8px; }
 }
-/* ═══ SMS SETUP PROMPT (PRO VERSION) ═══ */
+/* ═══ SMS SETUP PROMPT ═══ */
 .sms-prompt-card {
-  position: fixed; bottom: 90px; right: 24px; z-index: 1000;
-  width: 340px; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px);
-  border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 20px;
-  padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 20px rgba(99, 102, 241, 0.2);
-  animation: proStepUp 0.8s cubic-bezier(0.19, 1, 0.22, 1);
-  overflow: hidden;
+  position: fixed; bottom: 84px; right: 24px; z-index: 150;
+  width: 320px; background: var(--glass-bg); backdrop-filter: blur(20px);
+  border: 1px solid var(--accent-primary); border-radius: var(--radius-xl);
+  padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.sms-prompt-card::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-  background: linear-gradient(90deg, #6366f1, #a855f7, #6366f1);
-  background-size: 200% 100%; animation: gradientMove 3s linear infinite;
-}
-.sms-prompt-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.sms-prompt-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .sms-prompt-icon {
-  width: 42px; height: 42px; border-radius: 12px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));
-  color: #818cf8; display: flex; align-items: center; justify-content: center;
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  width: 36px; height: 36px; border-radius: var(--radius-md);
+  background: var(--accent-primary-glow); color: var(--accent-primary);
+  display: flex; align-items: center; justify-content: center;
 }
-.sms-prompt-title { font-size: 17px; font-weight: 700; color: #f8fafc; letter-spacing: -0.01em; }
-.sms-prompt-text { font-size: 14px; color: #94a3b8; line-height: 1.6; margin-bottom: 20px; }
-.sms-prompt-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.sms-prompt-title { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.sms-prompt-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px; }
+.sms-prompt-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
-.btn-pro-primary {
-  background: #6366f1; color: white; border: none; padding: 10px 18px;
-  border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer;
-  transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-}
-.btn-pro-primary:hover { background: #4f46e5; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4); }
-
-.btn-pro-ghost {
-  background: transparent; color: #64748b; border: none; padding: 10px 14px;
-  font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.3s ease;
-}
-.btn-pro-ghost:hover { color: #f1f5f9; background: rgba(255,255,255,0.05); }
-
-@keyframes proStepUp {
-  0% { opacity: 0; transform: translateY(60px) scale(0.9); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes gradientMove {
-  0% { background-position: 0% 0%; }
-  100% { background-position: 200% 0%; }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @media (max-width: 768px) {
