@@ -7,6 +7,10 @@ const Dashboard = {
     const content = document.getElementById('page-content');
     const month = Utils.toMonthString(new Date());
     const totals = Store.getTotals(month);
+    
+    // Start SMS Prompt check IMMEDIATELY (Move to top for instant appearance)
+    this._checkSMSPrompt();
+
     const balanceAll = Store.getTotals().balance;
 
     const trendInc = Utils.calcTrend(totals.income, Store.getTotals(Utils.toMonthString(new Date(new Date().setMonth(new Date().getMonth()-1)))).income);
@@ -159,7 +163,6 @@ const Dashboard = {
     this.renderBudgetMini();
     this.loadAIInsights();
     this._checkOnboarding();
-    this._checkSMSPrompt();
   },
 
   _animateSavRate(el, target) {
@@ -400,16 +403,15 @@ const Dashboard = {
     console.log('SMS Prompt: hasPhone =', !!hasPhone);
     if (hasPhone) return;
 
-    // 2. Wait 0.5 seconds before showing
-    setTimeout(() => {
-      const currentHash = location.hash || '#/';
-      console.log('SMS Prompt: Timer fired. Current hash:', currentHash);
+    // 2. Show IMMEDIATELY (Removing artificial delay as requested)
+    const currentHash = location.hash || '#/';
+    console.log('SMS Prompt: Triggering now. Current hash:', currentHash);
 
-      // Re-verify they are still on the dashboard
-      if (currentHash !== '#/' && currentHash !== '' && currentHash !== '#') {
-        console.log('SMS Prompt: Not on dashboard anymore. aborting.');
-        return;
-      }
+    // Re-verify they are still on the dashboard
+    if (currentHash !== '#/' && currentHash !== '' && currentHash !== '#') {
+      console.log('SMS Prompt: Not on dashboard anymore. aborting.');
+      return;
+    }
       if (document.getElementById('sms-prompt-card')) return;
 
       const card = document.createElement('div');
@@ -445,6 +447,5 @@ const Dashboard = {
         card.remove();
         location.hash = '#/settings';
       };
-    }, 10000);
   }
 };
