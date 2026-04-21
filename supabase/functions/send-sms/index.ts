@@ -14,33 +14,29 @@ serve(async (req) => {
   }
 
   try {
-    const { phone_number, amount, type, category, timestamp, description } = await req.json();
+    const { phone_number, amount, type, category, timestamp, formatted_time, description, balance, account_label } = await req.json();
 
     if (!phone_number) {
       return new Response(JSON.stringify({ error: "Missing phone number" }), { status: 400 });
     }
 
-    console.log(`[send-sms] Payload: phone=${phone_number}, amt=${amount}, type=${type}`);
+    console.log(`[send-sms] Payload: phone=${phone_number}, amt=${amount}, type=${type}, balance=${balance}`);
 
     if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
       console.error("[send-sms] CONFIG ERROR: Twilio credentials missing.");
       return new Response(JSON.stringify({ error: "Server configuration error" }), { status: 500 });
     }
 
-    // Prepare message template
-    let message = "";
-    if (type === 'income') {
-      message = `Credit of ₹${amount} added successfully.`;
-    } else {
-      message = `Debit of ₹${amount} recorded successfully.`;
-    }
+    // Professional Bank-Style Template
+    const label = account_label || 'XX-USER';
+    const action = type === 'income' ? 'credited' : 'debited';
+    const timeStr = formatted_time || new Date(timestamp).toLocaleString('en-IN');
+    const note = description ? ` Info: ${description}` : '';
+    const cat = category ? ` Ref: ${category}` : '';
 
-    const catName = category || 'Other';
-    message += `\nCategory: ${catName}`;
-    if (description) message += `\nNote: ${description}`;
-    message += `\nTime: ${new Date(timestamp).toLocaleString('en-IN')}`;
+    const message = `ExpenseIQ Alert: A/c ${label} ${action} for ₹${amount} on ${timeStr}.${cat}.${note} Avl Bal: ₹${balance}. - ExpenseIQ`;
 
-    console.log(`[send-sms] Message: "${message.replace(/\n/g, ' ')}"`);
+    console.log(`[send-sms] Message: "${message}"`);
 
     // Twilio API call
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
