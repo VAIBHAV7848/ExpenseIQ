@@ -183,6 +183,11 @@ const Store = {
       syncEngine.pushChange('transactions', 'insert', txn);
     }
 
+    // Trigger SMS Notification (instantly sends SMS to user)
+    if (typeof SMS !== 'undefined') {
+      SMS.notify(txn);
+    }
+
     return txn;
   },
 

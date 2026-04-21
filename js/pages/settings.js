@@ -14,6 +14,7 @@ const Settings = {
     const meta = user?.user_metadata || {};
     const primaryName = meta.full_name || meta.name || (email !== 'Guest User' ? email.split('@')[0] : 'Guest User');
     const avatarUrl = meta.avatar_url || meta.picture || '';
+    const phoneNumber = meta.phone_number || '';
 
     let avatarHtml = avatarUrl 
       ? `<img src="${Utils.escapeHtml(avatarUrl)}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`
@@ -33,7 +34,7 @@ const Settings = {
             </div>
             <div>
               <div style="font-weight:600;font-size:18px;color:var(--text-primary);">${Utils.escapeHtml(primaryName)}</div>
-              <div style="font-size:13px;color:var(--text-secondary); margin-top:2px;">${email}</div>
+              <div style="font-size:13px;color:var(--text-secondary); margin-top:2px;">${email} ${phoneNumber ? `<span style="margin:0 8px;opacity:0.3;">|</span> ${Utils.escapeHtml(phoneNumber)}` : ''}</div>
               <div style="font-size:11px;color:var(--text-muted); margin-top:4px;">
                 <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${isGuest ? '#f59e0b' : '#10b981'};margin-right:4px;"></span>
                 ${isGuest ? 'Local Account — Data is not synced' : 'Cloud Account — Synced with Supabase'}
@@ -54,6 +55,10 @@ const Settings = {
           <div class="form-group" style="width:100%;">
             <label class="form-label">Avatar URL (Optional)</label>
             <input type="text" id="edit-profile-avatar" class="form-input" placeholder="https://..." value="${Utils.escapeHtml(avatarUrl)}">
+          </div>
+          <div class="form-group" style="width:100%;">
+            <label class="form-label">Phone Number (for SMS Alerts)</label>
+            <input type="text" id="edit-profile-phone" class="form-input" placeholder="+1234567890" value="${Utils.escapeHtml(phoneNumber)}">
           </div>
           <div style="display:flex; gap:8px; width:100%; justify-content:flex-end;">
             <button class="btn btn-ghost btn-sm" id="btn-cancel-profile">Cancel</button>
@@ -251,7 +256,8 @@ const Settings = {
       btn.disabled = true;
       const newName = document.getElementById('edit-profile-name').value.trim();
       const newAvatar = document.getElementById('edit-profile-avatar').value.trim();
-      const { error } = await Auth.updateProfile({ full_name: newName, avatar_url: newAvatar });
+      const newPhone = document.getElementById('edit-profile-phone').value.trim();
+      const { error } = await Auth.updateProfile({ full_name: newName, avatar_url: newAvatar, phone_number: newPhone });
       if (error) {
         Toast.error('Update Failed', error.message);
         btn.textContent = 'Save Changes';
