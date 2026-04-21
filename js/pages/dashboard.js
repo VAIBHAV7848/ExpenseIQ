@@ -400,7 +400,7 @@ const Dashboard = {
     console.log('SMS Prompt: hasPhone =', !!hasPhone);
     if (hasPhone) return;
 
-    // 2. Wait 1.5 seconds before showing
+    // 2. Wait 0.5 seconds before showing
     setTimeout(() => {
       const currentHash = location.hash || '#/';
       console.log('SMS Prompt: Timer fired. Current hash:', currentHash);
