@@ -297,3 +297,29 @@
   .filter-date-input, .filter-amount-input { max-width: 100%; }
   .toast-container { max-width: 320px; right: 8px; }
 }
+/* ═══ SMS SETUP PROMPT ═══ */
+.sms-prompt-card {
+  position: fixed; bottom: 84px; right: 24px; z-index: 150;
+  width: 320px; background: var(--glass-bg); backdrop-filter: blur(20px);
+  border: 1px solid var(--accent-primary); border-radius: var(--radius-xl);
+  padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sms-prompt-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.sms-prompt-icon {
+  width: 36px; height: 36px; border-radius: var(--radius-md);
+  background: var(--accent-primary-glow); color: var(--accent-primary);
+  display: flex; align-items: center; justify-content: center;
+}
+.sms-prompt-title { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.sms-prompt-text { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px; }
+.sms-prompt-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 768px) {
+  .sms-prompt-card { left: 16px; right: 16px; width: auto; bottom: 80px; }
+}
