@@ -3,7 +3,7 @@
    Cache-first for static assets, network-only for APIs
    ======================================== */
 
-const CACHE_NAME = 'expenseiq-v24';
+const CACHE_NAME = 'expenseiq-v25';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -81,7 +81,7 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch — cache-first for static, network-only for APIs
+// Fetch — network-first for JS/CSS (ensures fresh code), cache-first for other assets
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
@@ -98,19 +98,35 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Cache-first for local static assets
+  // Network-first for JS and CSS files (ensures bug fixes take effect immediately)
+  const isCodeFile = url.pathname.endsWith('.js') || url.pathname.endsWith('.css');
+  if (isCodeFile && url.origin === self.location.origin) {
+    event.respondWith(
+      fetch(event.request).then(response => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        }
+        return response;
+      }).catch(() => {
+        // Offline fallback: serve from cache
+        return caches.match(event.request).then(cached => cached || new Response('', { status: 503 }));
+      })
+    );
+    return;
+  }
+
+  // Cache-first for other static assets (images, icons, HTML shell)
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
-        // Only cache successful same-origin GET responses
         if (response.ok && url.origin === self.location.origin && event.request.method === 'GET') {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
       }).catch(() => {
-        // Fallback for navigation requests
         if (event.request.mode === 'navigate') {
           return caches.match('/index.html');
         }
