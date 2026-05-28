@@ -292,7 +292,7 @@ Rules: amounts must be numbers not strings. Remove ₹ Rs symbols from amounts. 
       if (flagTitle) tr.title = flagTitle;
 
       tr.innerHTML = `
-        <td style="padding:10px;text-align:center;"><input type="checkbox" class="scan-chk" checked style="width:15px;height:15px;accent-color:var(--accent-primary);" /><input type="hidden" class="scan-date" value="${item.date || Utils.today()}" /><input type="hidden" class="scan-type" value="${item.type || 'expense'}" /></td>
+        <td style="padding:10px;text-align:center;"><input type="checkbox" class="scan-chk" checked style="width:15px;height:15px;accent-color:var(--accent-primary);" /><input type="hidden" class="scan-date" value="${Utils.today()}" /><input type="hidden" class="scan-type" value="${item.type || 'expense'}" /></td>
         <td style="padding:8px 10px;"><input type="text" class="scan-desc" value="${Utils.escapeHtml(item.description)}" style="width:100%;border:1px solid var(--glass-border);border-radius:6px;padding:5px 8px;font-size:12px;background:transparent;color:var(--text-primary);" />${nwBadge ? '<div style="margin-top:3px;">'+nwBadge+'</div>' : ''}</td>
         <td style="padding:8px 10px;"><select class="scan-cat" style="width:100%;border:1px solid var(--glass-border);border-radius:6px;padding:4px;font-size:12px;background:var(--bg-secondary);color:var(--text-primary);">${catOpts}</select></td>
         <td style="padding:8px 10px;text-align:center;font-size:11px;"><span style="color:${confColor};font-weight:800;">${confPct}%</span>${isLow ? '<div style="font-size:9px;color:var(--color-warning);font-weight:700;">Review</div>' : ''}</td>
