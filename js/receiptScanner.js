@@ -150,27 +150,34 @@ const ReceiptScanner = {
         const base64 = await new Promise((resolve, reject) => {
           const r = new FileReader(); r.onload = () => resolve(r.result.split(',')[1]); r.onerror = reject; r.readAsDataURL(file);
         });
-        document.getElementById('loader-status').textContent = 'Analyzing with llama-3.2-11b-vision...';
+        document.getElementById('loader-status').textContent = 'Analyzing with Llama 4 Scout Vision...';
 
         const prompt = `You are a financial document extraction engine for an Indian personal finance app.
 Analyze this image. It may be a receipt, bill, invoice, handwritten expense list, or handwritten monthly budget sheet.
 Extract every financial row separately. Do not merge rows.
-Return strict JSON only using this schema:
-{"documentType":"receipt|bill|invoice|budget_sheet|handwritten_expense_sheet|unknown","currency":"INR","title":"string","merchant":"string|null","date":"YYYY-MM-DD|null","monthlyIncome":number|null,"familyInfo":{"adults":null,"kids":null,"totalMembers":null},"summary":{"needsTotal":null,"wantsTotal":null,"expenseTotal":null},"items":[{"rawText":"string","description":"string","amount":number,"type":"expense|income","needWantType":"needs|wants|unknown","suggestedCategoryName":"string","notes":"string"}],"warnings":[],"confidence":number}
-Rules: amounts must be numbers not strings. Remove currency symbols. For Indian docs use INR. If date missing return null. Return JSON only, no markdown.`;
+Return ONLY valid JSON (no markdown, no explanation, no code fences) using this exact schema:
+{"documentType":"receipt|bill|invoice|budget_sheet|handwritten_expense_sheet|unknown","currency":"INR","title":"string","merchant":"string or null","date":"YYYY-MM-DD or null","monthlyIncome":0,"familyInfo":{"adults":0,"kids":0,"totalMembers":0},"summary":{"needsTotal":0,"wantsTotal":0,"expenseTotal":0},"items":[{"rawText":"original text","description":"cleaned name","amount":0,"type":"expense","needWantType":"needs or wants or unknown","suggestedCategoryName":"Food or Rent or Utilities or Transport or Education or Health or Shopping or Entertainment or Other","notes":""}],"warnings":[],"confidence":90}
+Rules: amounts must be numbers not strings. Remove ₹ Rs symbols from amounts. For Indian docs use INR. If date missing use null. Every row in the document must be a separate item. Do not skip any rows. Return ONLY the JSON object.`;
 
         const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'llama-3.2-11b-vision-preview',
-            messages: [{ role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: `data:${file.type};base64,${base64}` } }] }],
-            response_format: { type: 'json_object' }
+            model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+            max_tokens: 4096,
+            messages: [{ role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: `data:${file.type};base64,${base64}` } }] }]
           })
         });
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
-        const groqJson = JSON.parse(data.choices[0].message.content);
+        let rawContent = data.choices[0].message.content.trim();
+        // Strip markdown code fences if present
+        rawContent = rawContent.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/,'');
+        // Find JSON boundaries
+        const jsonStart = rawContent.indexOf('{');
+        const jsonEnd = rawContent.lastIndexOf('}');
+        if (jsonStart === -1 || jsonEnd === -1) throw new Error('No JSON found in response');
+        const groqJson = JSON.parse(rawContent.substring(jsonStart, jsonEnd + 1));
 
         document.getElementById('loader-status').textContent = 'Running deterministic category mapping...';
         await new Promise(r => setTimeout(r, 500));
