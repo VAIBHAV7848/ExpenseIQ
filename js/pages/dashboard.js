@@ -30,91 +30,179 @@ const Dashboard = {
     }
     healthScore = Math.max(0, Math.min(100, healthScore));
     let healthLabel = 'Needs Work';
-    let healthColor = '#ef4444';
-    if (healthScore >= 80) { healthLabel = 'Excellent'; healthColor = '#10b981'; }
-    else if (healthScore >= 60) { healthLabel = 'Good'; healthColor = '#f59e0b'; }
-    else if (healthScore >= 40) { healthLabel = 'Fair'; healthColor = '#f97316'; }
+    let healthColor = 'var(--color-expense)';
+    if (healthScore >= 80) { healthLabel = 'Excellent'; healthColor = 'var(--color-income)'; }
+    else if (healthScore >= 60) { healthLabel = 'Good'; healthColor = 'var(--color-warning)'; }
+    else if (healthScore >= 40) { healthLabel = 'Fair'; healthColor = 'var(--accent-secondary)'; }
+
+    const userName = Auth.isAuthenticated() && !Auth.isGuest() 
+      ? Utils.escapeHtml(Auth.getUser()?.user_metadata?.full_name || Auth.getUser()?.email?.split('@')[0]) 
+      : 'Finance Explorer';
+
+    // Premium Greeting & Calendar Context
+    const now = new Date();
+    const formattedMonth = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const greetingText = now.getHours() < 12 ? 'Good Morning' : now.getHours() < 18 ? 'Good Afternoon' : 'Good Evening';
 
     content.innerHTML = `
+      <!-- Premium Hero Greeting Card -->
+      <div class="dashboard-greeting-wrap animate-fade-in-down" style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+        flex-wrap: wrap;
+        gap: 20px;
+      ">
+        <div>
+          <h1 style="
+            font-size: var(--text-3xl);
+            font-weight: 900;
+            color: var(--text-primary);
+            letter-spacing: -1.2px;
+            line-height: 1.15;
+            margin-bottom: 6px;
+          ">${greetingText}, ${userName} <span class="wave-emoji" style="display:inline-block; animation: wave 2s infinite;">👋</span></h1>
+          <p style="font-size: var(--text-sm); color: var(--text-secondary); font-weight: 500;">
+            Here is your financial status overview for <span style="color: var(--accent-primary); font-weight: 700;">${formattedMonth}</span>. Keep it up!
+          </p>
+        </div>
+        
+        <div class="header-action-date-tag" style="
+          background: var(--bg-card);
+          border: 1px solid var(--glass-border);
+          box-shadow: var(--shadow-sm);
+          padding: 10px 18px;
+          border-radius: var(--radius-full);
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+        ">
+          <span style="
+            width: 8px;
+            height: 8px;
+            background: var(--color-success);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 10px var(--color-success);
+          "></span>
+          <span style="
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+          ">${Auth.isAuthenticated() && !Auth.isGuest() ? 'Cloud Synced' : 'Offline Sandbox'}</span>
+        </div>
+      </div>
+
       <div class="dashboard-stats stagger-children" id="dash-stats">
-        <div class="stat-card balance">
+        <div class="stat-card balance glow-on-hover" style="border-radius: var(--radius-xl);">
           <div class="stat-card-top">
-            <div class="stat-card-icon balance"><i data-lucide="wallet"></i></div>
+            <div class="stat-card-icon balance" style="background: var(--accent-primary-glow); color: var(--accent-primary);">
+              <i data-lucide="wallet"></i>
+            </div>
+            <span style="font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; background: var(--bg-tertiary); padding: 4px 8px; border-radius: 6px;">Total</span>
           </div>
-          <div class="stat-card-amount" id="st-bal">0</div>
-          <div class="stat-card-label">Total Balance</div>
+          <div class="stat-card-amount font-mono" id="st-bal" style="font-size: 28px; font-weight: 800; margin-top: 8px;">0</div>
+          <div class="stat-card-label" style="font-size: 11px; letter-spacing: 0.5px; font-weight: 700; color: var(--text-secondary); margin-top: 6px;">Net Worth Pool</div>
         </div>
 
-        <div class="stat-card income glow-on-hover">
+        <div class="stat-card income glow-on-hover" style="border-radius: var(--radius-xl);">
           <div class="stat-card-top">
-            <div class="stat-card-icon income"><i data-lucide="trending-up"></i></div>
-            <div class="stat-card-trend ${trendInc.direction}">
-              <i data-lucide="${trendInc.direction === 'up' ? 'arrow-up-right' : 'arrow-down-right'}"></i> ${trendInc.pct}%
+            <div class="stat-card-icon income" style="background: var(--color-income-bg); color: var(--color-income);">
+              <i data-lucide="trending-up"></i>
+            </div>
+            <div class="stat-card-trend ${trendInc.direction}" style="
+              font-size: 11px;
+              font-weight: 800;
+              padding: 4px 10px;
+              border-radius: var(--radius-full);
+              background: ${trendInc.direction === 'up' ? 'var(--color-income-bg)' : 'var(--color-expense-bg)'};
+              color: ${trendInc.direction === 'up' ? 'var(--color-income)' : 'var(--color-expense)'};
+            ">
+              <i data-lucide="${trendInc.direction === 'up' ? 'arrow-up-right' : 'arrow-down-right'}" style="width:12px; height:12px; display:inline-block; vertical-align:middle;"></i> ${trendInc.pct}%
             </div>
           </div>
-          <div class="stat-card-amount text-income" id="st-inc">0</div>
-          <div class="stat-card-label">Income This Month</div>
+          <div class="stat-card-amount text-income font-mono" id="st-inc" style="font-size: 28px; font-weight: 800; margin-top: 8px;">0</div>
+          <div class="stat-card-label" style="font-size: 11px; letter-spacing: 0.5px; font-weight: 700; color: var(--text-secondary); margin-top: 6px;">Inflow Monthly</div>
           <button class="stat-card-action" onclick="window.showAddTransactionModal('income')" title="Add Income">
             <i data-lucide="plus"></i>
           </button>
         </div>
 
-        <div class="stat-card expense glow-on-hover">
+        <div class="stat-card expense glow-on-hover" style="border-radius: var(--radius-xl);">
           <div class="stat-card-top">
-            <div class="stat-card-icon expense"><i data-lucide="trending-down"></i></div>
-            <div class="stat-card-trend ${trendExp.direction}">
-              <i data-lucide="${trendExp.direction === 'up' ? 'arrow-up-right' : 'arrow-down-right'}"></i> ${trendExp.pct}%
+            <div class="stat-card-icon expense" style="background: var(--color-expense-bg); color: var(--color-expense);">
+              <i data-lucide="trending-down"></i>
+            </div>
+            <div class="stat-card-trend ${trendExp.direction}" style="
+              font-size: 11px;
+              font-weight: 800;
+              padding: 4px 10px;
+              border-radius: var(--radius-full);
+              background: ${trendExp.direction === 'up' ? 'var(--color-expense-bg)' : 'var(--color-income-bg)'};
+              color: ${trendExp.direction === 'up' ? 'var(--color-expense)' : 'var(--color-income)'};
+            ">
+              <i data-lucide="${trendExp.direction === 'up' ? 'arrow-up-right' : 'arrow-down-right'}" style="width:12px; height:12px; display:inline-block; vertical-align:middle;"></i> ${trendExp.pct}%
             </div>
           </div>
-          <div class="stat-card-amount text-expense" id="st-exp">0</div>
-          <div class="stat-card-label">Expenses This Month</div>
+          <div class="stat-card-amount text-expense font-mono" id="st-exp" style="font-size: 28px; font-weight: 800; margin-top: 8px;">0</div>
+          <div class="stat-card-label" style="font-size: 11px; letter-spacing: 0.5px; font-weight: 700; color: var(--text-secondary); margin-top: 6px;">Outflow Monthly</div>
           <button class="stat-card-action" onclick="window.showAddTransactionModal('expense')" title="Add Expense">
             <i data-lucide="plus"></i>
           </button>
         </div>
 
-        <div class="stat-card savings">
+        <div class="stat-card savings glow-on-hover" style="border-radius: var(--radius-xl);">
           <div class="stat-card-top">
-            <div class="stat-card-icon savings"><i data-lucide="piggy-bank"></i></div>
-          </div>
-          <div class="stat-card-amount" id="st-sav">0%</div>
-          <div class="stat-card-label">Savings Rate</div>
-        </div>
-      </div>
-
-      <!-- Financial Health Score -->
-      <div class="dashboard-health-row animate-fade-in-up" style="animation-delay:100ms">
-        <div class="health-score-card">
-          <div class="health-gauge">
-            <svg viewBox="0 0 120 65" class="health-svg">
-              <path d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke="var(--glass-border)" stroke-width="10" stroke-linecap="round"/>
-              <path d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke="${healthColor}" stroke-width="10" stroke-linecap="round"
-                stroke-dasharray="${healthScore * 1.57} 157" class="health-arc"/>
-            </svg>
-            <div class="health-score-value">${healthScore}</div>
-          </div>
-          <div class="health-label" style="color:${healthColor}">${healthLabel}</div>
-          <div class="health-sublabel">Financial Health Score</div>
-        </div>
-
-        <div class="ai-insights-card" id="ai-insights-card">
-          <div class="card-header">
-            <h3 class="card-title"><span style="font-size:16px;">✨</span> AI Insights</h3>
-          </div>
-          <div id="ai-insights-content" class="ai-insights-content">
-            <div class="text-muted" style="padding:16px; font-size:14px;">
-              ${AI.isAvailable() ? 'Loading insights...' : 'Enable Groq API key in config.js for AI insights.'}
+            <div class="stat-card-icon savings" style="background: var(--color-warning-bg); color: var(--color-warning);">
+              <i data-lucide="piggy-bank"></i>
             </div>
+            <span style="font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; background: var(--bg-tertiary); padding: 4px 8px; border-radius: 6px;">Ratio</span>
+          </div>
+          <div class="stat-card-amount font-mono" id="st-sav" style="font-size: 28px; font-weight: 800; margin-top: 8px;">0%</div>
+          <div class="stat-card-label" style="font-size: 11px; letter-spacing: 0.5px; font-weight: 700; color: var(--text-secondary); margin-top: 6px;">Savings Rate</div>
+        </div>
+      </div>
+
+      <!-- Financial Health Score & Dynamic AI Insights Card -->
+      <div class="dashboard-health-row animate-fade-in-up" style="animation-delay:100ms; margin-bottom: 32px;">
+        <div class="health-score-card" style="border-radius: var(--radius-xl); padding: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <div class="health-gauge" style="position: relative; width: 140px; height: 75px; margin-bottom: 12px;">
+            <svg viewBox="0 0 120 65" class="health-svg" style="width: 100%; height: 100%;">
+              <path d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke="var(--bg-tertiary)" stroke-width="11" stroke-linecap="round"/>
+              <path d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke="${healthColor}" stroke-width="11" stroke-linecap="round"
+                stroke-dasharray="${healthScore * 1.57} 157" class="health-arc" style="transition: stroke-dasharray 1s ease-in-out; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.06));"/>
+            </svg>
+            <div class="health-score-value" style="font-family: var(--font-primary); font-size: 32px; font-weight: 900; bottom: 0;">${healthScore}</div>
+          </div>
+          <div class="health-label" style="color:${healthColor}; font-size: 16px; font-weight: 900; letter-spacing: -0.3px; margin-top: 4px;">${healthLabel}</div>
+          <div class="health-sublabel" style="font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px;">Financial Health Index</div>
+        </div>
+
+        <div class="ai-insights-card" id="ai-insights-card" style="border-radius: var(--radius-xl); flex: 1;">
+          <div class="card-header" style="margin-bottom: 14px;">
+            <h3 class="card-title" style="font-weight: 800; display:flex; align-items:center; gap: 8px;">
+              <span class="pulse-spark" style="display:inline-flex; align-items:center; justify-content:center; background: var(--accent-primary-glow); padding: 6px; border-radius: 8px; color: var(--accent-primary);"><i data-lucide="sparkles" style="width: 16px; height: 16px;"></i></span>
+              Smart Financial Assistant
+            </h3>
+            <span style="font-size: 10px; background: var(--bg-tertiary); color: var(--text-secondary); padding: 4px 8px; border-radius: 6px; font-weight: 700;">Live Feed</span>
+          </div>
+          <div id="ai-insights-content" class="ai-insights-content" style="display: flex; flex-direction: column; gap: 10px; min-height: 100px;">
+            <!-- Rendered dynamically -->
           </div>
         </div>
       </div>
 
-      <div class="dashboard-charts stagger-children">
-        <div class="chart-card">
+      <div class="dashboard-charts stagger-children" style="margin-bottom: 32px;">
+        <div class="chart-card" style="border-radius: var(--radius-xl);">
           <div class="card-header">
-            <h3 class="card-title">Spending Trend</h3>
+            <h3 class="card-title">Daily Cashflow Trend</h3>
             <div class="pills">
-              <div class="pill active">30 Days</div>
+              <div class="pill active" style="font-size: 10px; padding: 4px 12px; font-weight: 800; border-radius: var(--radius-full);">30 Days</div>
             </div>
           </div>
           <div class="chart-container">
@@ -122,9 +210,10 @@ const Dashboard = {
           </div>
         </div>
 
-        <div class="chart-card">
+        <div class="chart-card" style="border-radius: var(--radius-xl);">
           <div class="card-header">
-            <h3 class="card-title">Top Categories</h3>
+            <h3 class="card-title">Category Allocations</h3>
+            <span style="font-size: 10px; color: var(--text-muted); font-weight: 700;">Top Expenses</span>
           </div>
           <div class="chart-container">
             <canvas id="donutChart"></canvas>
@@ -132,19 +221,19 @@ const Dashboard = {
         </div>
       </div>
 
-      <div class="dashboard-bottom stagger-children">
-        <div class="recent-transactions-card">
+      <div class="dashboard-bottom stagger-children" style="margin-bottom: 32px;">
+        <div class="recent-transactions-card" style="border-radius: var(--radius-xl);">
           <div class="card-header">
-            <h3 class="card-title">Recent Transactions</h3>
-            <a href="#/transactions" class="section-link">View All <i data-lucide="chevron-right"></i></a>
+            <h3 class="card-title">Recent Activity</h3>
+            <a href="#/transactions" class="section-link" style="font-size: var(--text-xs); font-weight: 700;">View Statement <i data-lucide="arrow-right" style="width:12px; height:12px;"></i></a>
           </div>
           <div class="recent-transactions-list" id="recent-list"></div>
         </div>
 
-        <div class="budget-overview-card">
+        <div class="budget-overview-card" style="border-radius: var(--radius-xl);">
           <div class="card-header">
-            <h3 class="card-title">Budgets</h3>
-            <a href="#/budgets" class="section-link"><i data-lucide="chevron-right"></i></a>
+            <h3 class="card-title">Category Limits</h3>
+            <a href="#/budgets" class="section-link"><i data-lucide="arrow-right" style="width:14px; height:14px;"></i></a>
           </div>
           <div id="budget-mini-list"></div>
         </div>
@@ -178,17 +267,112 @@ const Dashboard = {
   },
 
   async loadAIInsights() {
-    if (!AI.isAvailable()) return;
     const container = document.getElementById('ai-insights-content');
     if (!container) return;
 
-    const insights = await AI.getSmartInsights();
-    if (insights && insights.length > 0) {
-      container.innerHTML = insights.map(i =>
-        '<div class="ai-insight-item"><span class="ai-insight-icon">💡</span><span>' + Utils.escapeHtml(i) + '</span></div>'
-      ).join('');
+    let insights = [];
+
+    // Real AI Insights
+    if (AI.isAvailable()) {
+      try {
+        const aiInsights = await AI.getSmartInsights();
+        if (aiInsights && aiInsights.length > 0) {
+          insights = aiInsights;
+        }
+      } catch (e) {
+        console.warn('Groq AI Insight fetch failed, using smart local rule engine:', e);
+      }
+    }
+
+    // Local Smart Rule Engine fallback
+    if (insights.length === 0) {
+      const month = Utils.toMonthString(new Date());
+      const totals = Store.getTotals(month);
+      const allTxns = Store.getTransactions({ sortBy: 'date' });
+      const currentMonthTxns = Store.getTransactions({ startDate: month + '-01', endDate: month + '-31' });
+      
+      if (currentMonthTxns.length === 0) {
+        insights.push("Welcome! Add a transaction manually or click **AI Scanner** on the Transactions page to import a handwritten budget sheet instantly.");
+        insights.push("Our Document Intelligence engine parses complex table rows, categories, and values to build your financial overview in seconds.");
+      } else {
+        const savRate = Utils.percentage(totals.balance, totals.income) || 0;
+        
+        // Savings rate advice
+        if (totals.income > 0) {
+          if (savRate > 25) {
+            insights.push(`🔥 Excellent job! Your savings rate of **${Math.round(savRate)}%** is well above the standard 20% threshold. You're building wealth rapidly.`);
+          } else if (savRate > 10) {
+            insights.push(`💡 Consistent Saver: You saved **${Math.round(savRate)}%** of your income this month. Try trimming snack or shopping expenses to reach 20%.`);
+          } else if (savRate >= 0) {
+            insights.push(`⚠️ Tight Budget: You saved **${Math.round(savRate)}%** of your inflow. Consider auditing recurring bills or subscriptions to build a larger cushion.`);
+          } else {
+            insights.push(`🚨 Over-budget warning: Your monthly expenses exceed your income by **${Utils.formatCurrency(Math.abs(totals.balance))}**. Review category limits immediately.`);
+          }
+        } else {
+          insights.push("💡 Active Month: Recording your transactions consistently helps our smart rule engine identify spending categories and balance ratios.");
+        }
+
+        // Category-specific advice
+        const byCat = Store.getByCategory(month);
+        let highestExpenseCat = null;
+        let highestExpenseAmt = 0;
+        
+        Object.entries(byCat).forEach(([catId, data]) => {
+          if (data.expense > highestExpenseAmt) {
+            highestExpenseAmt = data.expense;
+            highestExpenseCat = catId;
+          }
+        });
+
+        if (highestExpenseCat) {
+          const cat = Store.getCategory(highestExpenseCat);
+          const pctOfTotal = Utils.percentage(highestExpenseAmt, totals.expense);
+          if (pctOfTotal > 35 && totals.expense > 0) {
+            insights.push(`📊 Concentration Risk: **${cat ? cat.name : 'Other'}** makes up **${Math.round(pctOfTotal)}%** of your total monthly outflow. Try setting a strict category budget.`);
+          }
+        }
+
+        // Budget Limit Alerts
+        const budgetStatus = Store.getBudgetStatus(month);
+        if (budgetStatus) {
+          let overCount = 0;
+          Object.values(budgetStatus.categoryStatus).forEach(s => {
+            if (s.status === 'over-budget') overCount++;
+          });
+          if (overCount > 0) {
+            insights.push(`🚨 Limit Warning: You have exceeded the allocated budget in **${overCount}** categories. Tap Budgets to adjust allocations.`);
+          }
+        }
+      }
+    }
+
+    // Render insights beautifully
+    if (insights.length > 0) {
+      container.innerHTML = insights.map((insight, idx) => `
+        <div class="ai-insight-item animate-fade-in-up" style="
+          animation-delay: ${idx * 80}ms;
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          font-size: 13.5px;
+          color: var(--text-secondary);
+          line-height: 1.5;
+          padding: 12px 16px;
+          border-radius: var(--radius-lg);
+          background: var(--bg-primary);
+          border: 1px solid var(--glass-border);
+          transition: all var(--transition-fast);
+        ">
+          <span class="ai-insight-icon" style="font-size: var(--text-lg); flex-shrink: 0; line-height: 1;">💡</span>
+          <span style="flex: 1;">${insight.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--text-primary); font-weight:700;">$1</strong>')}</span>
+        </div>
+      `).join('');
     } else {
-      container.innerHTML = '<div class="text-muted" style="padding:16px; font-size:14px;">Not enough data for insights yet.</div>';
+      container.innerHTML = `
+        <div class="text-muted" style="padding:16px; font-size:13px; text-align:center;">
+          Not enough transaction data for insights yet.
+        </div>
+      `;
     }
   },
 

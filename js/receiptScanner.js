@@ -1,343 +1,363 @@
 /* ========================================
-   ExpenseIQ — AI Receipt Scanner Component
+   ExpenseIQ — AI Receipt Scanner (UI Layer)
+   Delegates all data logic to ScannerService.
    ======================================== */
 
 const ReceiptScanner = {
-  templates: {
-    starbucks: {
-      description: 'Starbucks Coffee',
-      amount: 320,
-      category: 'food',
-      date: () => Utils.today(),
-      type: 'expense',
-      notes: 'Brewed coffee & chocolate chip cookie',
-      confidence: 98
-    },
-    uber: {
-      description: 'Uber Ride',
-      amount: 450,
-      category: 'transport',
-      date: () => Utils.today(),
-      type: 'expense',
-      notes: 'Commute to office (Premium Sedan)',
-      confidence: 96
-    },
-    walmart: {
-      description: 'Walmart Supercenter',
-      amount: 3850,
-      category: 'shopping',
-      date: () => Utils.today(),
-      type: 'expense',
-      notes: 'Weekly groceries & paper supplies',
-      confidence: 94
-    },
-    amazon: {
-      description: 'Amazon Bookstore',
-      amount: 1200,
-      category: 'education',
-      date: () => Utils.today(),
-      type: 'expense',
-      notes: 'Financial intelligence & investing book',
-      confidence: 97
-    }
-  },
 
   showModal() {
     const categories = Store.getCategories();
-    
-    const contentHtml = `
-      <div class="receipt-scanner-wrap" style="color: var(--text-primary); font-family: var(--font-primary);">
-        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
-          Upload a receipt file or pick a premium demo template below to simulate a real startup AI extraction workflow instantly.
+    const catOpts = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+    const html = `
+      <div class="receipt-scanner-wrap" style="color:var(--text-primary);">
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;line-height:1.5;">
+          Upload a receipt, bill, or handwritten budget sheet. Our pipeline extracts items, maps categories deterministically, validates totals, and lets you review before saving.
         </p>
-
-        <!-- Dropzone -->
-        <div class="receipt-dropzone" id="receipt-dropzone" style="
-          border: 2px dashed rgba(94, 95, 240, 0.3);
-          border-radius: var(--radius-xl);
-          padding: 32px 20px;
-          text-align: center;
-          background: rgba(94, 95, 240, 0.02);
-          cursor: pointer;
-          transition: all var(--transition-base);
-          margin-bottom: 20px;
-        ">
-          <div class="dropzone-icon" style="font-size: 32px; color: var(--accent-primary); margin-bottom: 12px;">
-            <i data-lucide="upload-cloud"></i>
-          </div>
-          <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 4px;">Drag & drop your receipt image</h4>
-          <p style="font-size: 11px; color: var(--text-muted);">Supports PNG, JPG up to 5MB</p>
-          <input type="file" id="receipt-file-input" accept="image/*" style="display: none;" />
+        <div id="receipt-dropzone" style="border:2px dashed rgba(94,95,240,0.25);border-radius:var(--radius-xl);padding:32px 20px;text-align:center;background:rgba(94,95,240,0.01);cursor:pointer;transition:all var(--transition-base);margin-bottom:20px;">
+          <div style="color:var(--accent-primary);margin-bottom:12px;display:inline-block;"><i data-lucide="upload-cloud" style="width:36px;height:36px;"></i></div>
+          <h4 style="font-size:14px;font-weight:800;margin-bottom:4px;">Drag & drop documents here</h4>
+          <p style="font-size:11px;color:var(--text-muted);margin:0;">Supports PNG, JPG, PDF</p>
+          <input type="file" id="receipt-file-input" accept="image/*,application/pdf" style="display:none;" />
         </div>
-
-        <!-- Template Picker -->
-        <div style="margin-bottom: 24px;">
-          <h5 style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 12px;">
-            ⚡ Quick Demo Templates
+        <div id="demo-presets-wrap" style="margin-bottom:24px;">
+          <h5 style="font-size:10px;font-weight:800;text-transform:uppercase;color:var(--text-muted);letter-spacing:1.2px;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+            <i data-lucide="play-circle" style="width:14px;height:14px;color:var(--accent-primary);"></i> Demo Presets
           </h5>
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-            <button class="btn btn-secondary btn-sm demo-template-btn" data-template="starbucks" style="justify-content: flex-start; text-align: left; padding: 10px 12px;">
-              ☕ Starbucks (₹320)
-            </button>
-            <button class="btn btn-secondary btn-sm demo-template-btn" data-template="uber" style="justify-content: flex-start; text-align: left; padding: 10px 12px;">
-              🚗 Uber Ride (₹450)
-            </button>
-            <button class="btn btn-secondary btn-sm demo-template-btn" data-template="walmart" style="justify-content: flex-start; text-align: left; padding: 10px 12px;">
-              🛒 Walmart (₹3,850)
-            </button>
-            <button class="btn btn-secondary btn-sm demo-template-btn" data-template="amazon" style="justify-content: flex-start; text-align: left; padding: 10px 12px;">
-              📚 Amazon (₹1,200)
-            </button>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+            <button class="btn btn-secondary btn-sm demo-tpl" data-tpl="monthly_budget" style="justify-content:flex-start;text-align:left;padding:12px 14px;border-color:rgba(94,95,240,0.3);background:var(--accent-primary-glow);font-weight:700;color:var(--accent-primary);">📝 Monthly Budget (13 items)</button>
+            <button class="btn btn-secondary btn-sm demo-tpl" data-tpl="starbucks" style="justify-content:flex-start;text-align:left;padding:12px 14px;">☕ Starbucks (₹320)</button>
+            <button class="btn btn-secondary btn-sm demo-tpl" data-tpl="uber" style="justify-content:flex-start;text-align:left;padding:12px 14px;">🚗 Uber Ride (₹450)</button>
+            <button class="btn btn-secondary btn-sm demo-tpl" data-tpl="walmart" style="justify-content:flex-start;text-align:left;padding:12px 14px;">🛒 Walmart (₹3,850)</button>
           </div>
         </div>
-
-        <!-- Loader overlay inside content -->
-        <div class="scanner-loader hidden" id="scanner-loader" style="
-          text-align: center;
-          padding: 40px 20px;
-        ">
-          <div class="spin" style="color: var(--accent-primary); font-size: 28px; margin-bottom: 16px;">
-            <i data-lucide="loader-2"></i>
-          </div>
-          <h4 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Reading receipt details...</h4>
-          <p style="font-size: 12px; color: var(--text-secondary);" id="loader-status-text">AI is analyzing merchant text & amounts</p>
-          
-          <div class="scanner-skeleton" style="margin-top: 24px; display: flex; flex-direction: column; gap: 12px;">
-            <div style="height: 16px; background: rgba(94, 95, 240, 0.05); border-radius: 4px; animation: pulse 1.5s infinite;"></div>
-            <div style="height: 16px; background: rgba(94, 95, 240, 0.05); border-radius: 4px; animation: pulse 1.5s infinite; width: 80%; margin: 0 auto;"></div>
-            <div style="height: 16px; background: rgba(94, 95, 240, 0.05); border-radius: 4px; animation: pulse 1.5s infinite; width: 60%; margin: 0 auto;"></div>
+        <div class="hidden" id="scanner-loader" style="text-align:center;padding:40px 20px;background:var(--bg-primary);border-radius:var(--radius-xl);border:1px solid var(--glass-border);">
+          <div class="spin" style="color:var(--accent-primary);display:inline-block;margin-bottom:16px;"><i data-lucide="loader-2" style="width:36px;height:36px;"></i></div>
+          <h4 id="loader-headline" style="font-size:16px;font-weight:800;margin-bottom:6px;">Analyzing document...</h4>
+          <p id="loader-status" style="font-size:13px;color:var(--text-secondary);margin:0;">Running extraction pipeline</p>
+          <div style="margin-top:24px;display:flex;flex-direction:column;gap:12px;">
+            <div style="height:12px;background:rgba(94,95,240,0.05);border-radius:4px;animation:pulse 1.5s infinite;"></div>
+            <div style="height:12px;background:rgba(94,95,240,0.05);border-radius:4px;animation:pulse 1.5s infinite;width:80%;margin:0 auto;"></div>
           </div>
         </div>
-
-        <!-- Result Form -->
-        <div class="scanner-result hidden" id="scanner-result">
-          <div style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(15, 169, 104, 0.06);
-            border: 1px solid rgba(15, 169, 104, 0.15);
-            padding: 10px 14px;
-            border-radius: var(--radius-lg);
-            margin-bottom: 20px;
-          ">
-            <span style="font-size: 12px; font-weight: 700; color: var(--color-income); display: flex; align-items: center; gap: 6px;">
-              <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Extraction Successful
-            </span>
-            <span id="result-confidence" style="font-size: 11px; font-weight: 800; color: var(--text-secondary); background: var(--bg-primary); padding: 4px 8px; border-radius: 6px;">
-              Confidence: 98%
-            </span>
-          </div>
-
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label">Merchant / Description</label>
-              <input type="text" id="scan-desc" class="form-input" placeholder="e.g. Starbucks" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Amount (₹)</label>
-              <input type="number" step="0.01" id="scan-amount" class="form-input" placeholder="0.00" required />
-            </div>
-          </div>
-
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label">Category</label>
-              <select id="scan-cat" class="form-select" required>
-                ${categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Transaction Date</label>
-              <input type="date" id="scan-date" class="form-input" required />
-            </div>
-          </div>
-
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label">Type</label>
-              <select id="scan-type" class="form-select" required>
-                <option value="expense">Expense</option>
-                <option value="income">Income</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Notes</label>
-              <input type="text" id="scan-notes" class="form-input" placeholder="Additional details..." />
-            </div>
+        <div class="hidden" id="scanner-single">${this._singleFormHtml(catOpts)}</div>
+        <div class="hidden" id="scanner-multi">
+          <div id="scan-warnings"></div>
+          <div id="scan-summary"></div>
+          <div style="max-height:320px;overflow-y:auto;border:1px solid var(--glass-border);border-radius:var(--radius-lg);margin-bottom:16px;background:var(--bg-primary);">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <thead><tr style="background:var(--bg-tertiary);border-bottom:1px solid var(--glass-border);position:sticky;top:0;z-index:10;">
+                <th style="padding:10px;width:36px;text-align:center;background:var(--bg-tertiary);"><input type="checkbox" id="ledger-select-all" checked /></th>
+                <th style="padding:10px;background:var(--bg-tertiary);font-weight:800;color:var(--text-secondary);">Description</th>
+                <th style="padding:10px;width:130px;background:var(--bg-tertiary);font-weight:800;color:var(--text-secondary);">Category</th>
+                <th style="padding:10px;width:70px;background:var(--bg-tertiary);font-weight:800;color:var(--text-secondary);text-align:center;">Type</th>
+                <th style="padding:10px;width:55px;background:var(--bg-tertiary);font-weight:800;color:var(--text-secondary);text-align:center;">Conf.</th>
+                <th style="padding:10px;width:95px;background:var(--bg-tertiary);font-weight:800;color:var(--text-secondary);text-align:right;">Amount</th>
+              </tr></thead>
+              <tbody id="ledger-tbody"></tbody>
+            </table>
           </div>
         </div>
-      </div>
-    `;
+      </div>`;
 
     Modal.show({
-      title: 'AI Receipt Scanner',
+      title: '✨ Document Intelligence Scanner',
       class: 'modal-lg',
-      content: contentHtml,
+      content: html,
       buttons: [
         { id: 'btn-scan-cancel', text: 'Cancel', class: 'btn-secondary' },
-        { id: 'btn-scan-save', text: 'Save Transaction', class: 'btn-primary hidden' }
+        { id: 'btn-scan-save', text: 'Save Transaction', class: 'btn-primary hidden' },
+        { id: 'btn-ledger-save', text: 'Import Selected Items', class: 'btn-primary hidden', style: 'background:var(--accent-gradient);' }
       ],
-      onRender: (modalEl) => {
-        if (window.lucide) lucide.createIcons();
-        this.bindEvents(modalEl);
-      }
+      onRender: () => { if (window.lucide) lucide.createIcons(); this._bind(); }
     });
   },
 
-  bindEvents(modalEl) {
-    const dropzone = modalEl.querySelector('#receipt-dropzone');
-    const fileInput = modalEl.querySelector('#receipt-file-input');
-    const loader = modalEl.querySelector('#scanner-loader');
-    const resultDiv = modalEl.querySelector('#scanner-result');
-    const templateBtns = modalEl.querySelectorAll('.demo-template-btn');
-    const saveBtn = document.getElementById('btn-scan-save');
-    const cancelBtn = document.getElementById('btn-scan-cancel');
-
-    // Trigger file input
-    dropzone.addEventListener('click', () => fileInput.click());
-
-    // File Drag Effects
-    dropzone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropzone.style.borderColor = 'var(--accent-primary)';
-      dropzone.style.background = 'var(--accent-primary-glow)';
-    });
-
-    dropzone.addEventListener('dragleave', () => {
-      dropzone.style.borderColor = 'rgba(94, 95, 240, 0.3)';
-      dropzone.style.background = 'rgba(94, 95, 240, 0.02)';
-    });
-
-    dropzone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropzone.style.borderColor = 'rgba(94, 95, 240, 0.3)';
-      dropzone.style.background = 'rgba(94, 95, 240, 0.02)';
-      if (e.dataTransfer.files.length > 0) {
-        this.processFile(e.dataTransfer.files[0], loader, resultDiv, dropzone, templateBtns, saveBtn);
-      }
-    });
-
-    // File Input selection
-    fileInput.addEventListener('change', () => {
-      if (fileInput.files.length > 0) {
-        this.processFile(fileInput.files[0], loader, resultDiv, dropzone, templateBtns, saveBtn);
-      }
-    });
-
-    // Template Pickers
-    templateBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const templateName = btn.dataset.template;
-        const data = this.templates[templateName];
-        this.simulateScanning(data, loader, resultDiv, dropzone, templateBtns, saveBtn);
-      });
-    });
-
-    // Cancel Button
-    cancelBtn.addEventListener('click', () => Modal.close());
-
-    // Save Button
-    saveBtn.addEventListener('click', () => {
-      const newTxn = {
-        description: document.getElementById('scan-desc').value.trim(),
-        amount: parseFloat(document.getElementById('scan-amount').value),
-        category: document.getElementById('scan-cat').value,
-        date: document.getElementById('scan-date').value,
-        type: document.getElementById('scan-type').value,
-        notes: document.getElementById('scan-notes').value.trim()
-      };
-
-      if (!newTxn.description || isNaN(newTxn.amount) || newTxn.amount <= 0) {
-        Toast.warning('Validation Failed', 'Please provide a valid description and positive amount.');
-        return;
-      }
-
-      const saved = Store.addTransaction(newTxn);
-      if (saved) {
-        Modal.close();
-        Toast.success('Saved via AI', `Successfully recorded ₹${newTxn.amount} for ${newTxn.description}.`);
-        
-        // Dynamic Page refresh based on route
-        if (Router.currentRoute === '#/transactions' && window.Transactions && Transactions.renderList) {
-          Transactions.renderList();
-        } else if (Router.currentRoute === '#/' && window.Dashboard && Dashboard.render) {
-          Dashboard.render();
-        }
-        
-        // Refresh sidebar
-        Sidebar.render();
-      } else {
-        Toast.error('Error', 'Unable to save transaction. Please try again.');
-      }
-    });
+  _singleFormHtml(catOpts) {
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--color-income-bg);border:1px solid rgba(16,185,129,0.15);padding:12px 16px;border-radius:var(--radius-lg);margin-bottom:20px;">
+        <span style="font-size:13px;font-weight:800;color:var(--color-income);display:flex;align-items:center;gap:8px;"><i data-lucide="check-circle" style="width:16px;height:16px;"></i> Extracted</span>
+        <span id="single-conf" style="font-size:11px;font-weight:800;color:var(--text-secondary);background:var(--bg-secondary);padding:4px 8px;border-radius:6px;border:1px solid var(--glass-border);"></span>
+      </div>
+      <div class="form-row-2"><div class="form-group"><label class="form-label">Description</label><input type="text" id="s-desc" class="form-input"/></div><div class="form-group"><label class="form-label">Amount (₹)</label><input type="number" step="0.01" id="s-amt" class="form-input"/></div></div>
+      <div class="form-row-2"><div class="form-group"><label class="form-label">Category</label><select id="s-cat" class="form-select">${catOpts}</select></div><div class="form-group"><label class="form-label">Date</label><input type="date" id="s-date" class="form-input"/></div></div>
+      <div class="form-row-2" style="margin-bottom:0;"><div class="form-group" style="margin-bottom:0;"><label class="form-label">Type</label><select id="s-type" class="form-select"><option value="expense">Expense</option><option value="income">Income</option></select></div><div class="form-group" style="margin-bottom:0;"><label class="form-label">Notes</label><input type="text" id="s-notes" class="form-input" placeholder="Optional notes"/></div></div>`;
   },
 
-  processFile(file, loader, resultDiv, dropzone, templateBtns, saveBtn) {
-    // Determine random template category based on filename or just random fallback
-    const names = Object.keys(this.templates);
-    const matched = names.find(n => file.name.toLowerCase().includes(n)) || names[Math.floor(Math.random() * names.length)];
-    const baseData = { ...this.templates[matched] };
-    
-    // Inject slightly customized values to show real file-name influence
-    baseData.description = file.name.split('.')[0].replace(/[-_]/g, ' ') || baseData.description;
-    baseData.notes = `Extracted from uploaded receipt file: ${file.name}`;
-    baseData.confidence = Math.floor(Math.random() * 10) + 89; // 89% - 99%
+  _bind() {
+    const dz = document.getElementById('receipt-dropzone');
+    const fi = document.getElementById('receipt-file-input');
+    dz.addEventListener('click', () => fi.click());
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--accent-primary)'; dz.style.background = 'var(--accent-primary-glow)'; });
+    dz.addEventListener('dragleave', () => { dz.style.borderColor = 'rgba(94,95,240,0.25)'; dz.style.background = 'rgba(94,95,240,0.01)'; });
+    dz.addEventListener('drop', e => { e.preventDefault(); dz.style.borderColor = 'rgba(94,95,240,0.25)'; dz.style.background = 'rgba(94,95,240,0.01)'; if (e.dataTransfer.files.length) this._handleFile(e.dataTransfer.files[0]); });
+    fi.addEventListener('change', () => { if (fi.files.length) this._handleFile(fi.files[0]); });
 
-    this.simulateScanning(baseData, loader, resultDiv, dropzone, templateBtns, saveBtn);
+    document.querySelectorAll('.demo-tpl').forEach(btn => {
+      btn.addEventListener('click', () => this._runDemo(btn.dataset.tpl));
+    });
+
+    document.getElementById('btn-scan-cancel').addEventListener('click', () => Modal.close());
+    document.getElementById('btn-scan-save').addEventListener('click', () => this._saveSingle());
+    document.getElementById('btn-ledger-save').addEventListener('click', () => this._saveMulti());
   },
 
-  simulateScanning(data, loader, resultDiv, dropzone, templateBtns, saveBtn) {
-    // Hide picker & dropzone elements to focus on load skeletons
-    dropzone.classList.add('hidden');
-    templateBtns.forEach(b => b.classList.add('hidden'));
-    const demoLabel = modalEl => modalEl.querySelector('h5');
-    const demoLabelEl = document.querySelector('.receipt-scanner-wrap h5');
-    if (demoLabelEl) demoLabelEl.classList.add('hidden');
+  _hideInputs() {
+    document.getElementById('receipt-dropzone').classList.add('hidden');
+    document.getElementById('demo-presets-wrap').classList.add('hidden');
+  },
 
+  _showLoader(headline, status) {
+    const loader = document.getElementById('scanner-loader');
+    document.getElementById('loader-headline').textContent = headline;
+    document.getElementById('loader-status').textContent = status;
     loader.classList.remove('hidden');
+  },
 
-    // Run AI/OCR extraction prompts sequentially
+  _hideLoader() { document.getElementById('scanner-loader').classList.add('hidden'); },
+
+  // ── Demo flow ──
+  _runDemo(key) {
+    this._hideInputs();
+    const isBudget = key === 'monthly_budget';
+    this._showLoader(
+      isBudget ? 'Analyzing handwritten ledger...' : 'Scanning receipt...',
+      isBudget ? 'Running handwriting recognition (OCR)...' : 'Locating merchant and amount fields...'
+    );
+
     setTimeout(() => {
-      const statusText = document.getElementById('loader-status-text');
-      if (statusText) statusText.textContent = 'Running optical character matching (OCR)...';
+      document.getElementById('loader-status').textContent = isBudget ? 'Mapping items to finance categories...' : 'Running deterministic category matching...';
     }, 1000);
-
     setTimeout(() => {
-      const statusText = document.getElementById('loader-status-text');
-      if (statusText) statusText.textContent = 'Formatting categories & merchant records...';
+      document.getElementById('loader-status').textContent = isBudget ? 'Validating totals & budget balance...' : 'Cross-checking totals...';
     }, 2000);
-
     setTimeout(() => {
-      loader.classList.add('hidden');
-      resultDiv.classList.remove('hidden');
-      saveBtn.classList.remove('hidden');
+      this._hideLoader();
+      const result = ScannerService.buildDemoExtraction(key);
+      this._renderResult(result);
+    }, 3000);
+  },
 
-      // Populate Extracted details in the editable preview fields
-      document.getElementById('scan-desc').value = data.description;
-      document.getElementById('scan-amount').value = data.amount;
-      document.getElementById('scan-date').value = typeof data.date === 'function' ? data.date() : data.date;
-      document.getElementById('scan-type').value = data.type || 'expense';
-      document.getElementById('scan-notes').value = data.notes || '';
-      
-      const categorySelect = document.getElementById('scan-cat');
-      if (categorySelect) {
-        // Try selecting matching category id
-        const matchingCat = Array.from(categorySelect.options).find(o => o.text.toLowerCase().includes(data.category) || o.value.toLowerCase().includes(data.category));
-        if (matchingCat) {
-          categorySelect.value = matchingCat.value;
-        }
-      }
+  // ── File upload flow ──
+  async _handleFile(file) {
+    this._hideInputs();
+    const isBudget = ScannerService.isBudgetFile(file.name);
 
-      const confBadge = document.getElementById('result-confidence');
-      if (confBadge) {
-        confBadge.textContent = `Confidence: ${data.confidence}% (${data.confidence > 95 ? 'Excellent' : 'High'})`;
+    // Try Groq Vision if available
+    if (typeof CONFIG !== 'undefined' && CONFIG.GROQ_API_KEY && CONFIG.GROQ_API_KEY !== 'YOUR_GROQ_API_KEY_HERE') {
+      this._showLoader('Uploading to Groq Cloud...', 'Preparing document...');
+      try {
+        const base64 = await new Promise((resolve, reject) => {
+          const r = new FileReader(); r.onload = () => resolve(r.result.split(',')[1]); r.onerror = reject; r.readAsDataURL(file);
+        });
+        document.getElementById('loader-status').textContent = 'Analyzing with llama-3.2-11b-vision...';
+
+        const prompt = `You are a financial document extraction engine for an Indian personal finance app.
+Analyze this image. It may be a receipt, bill, invoice, handwritten expense list, or handwritten monthly budget sheet.
+Extract every financial row separately. Do not merge rows.
+Return strict JSON only using this schema:
+{"documentType":"receipt|bill|invoice|budget_sheet|handwritten_expense_sheet|unknown","currency":"INR","title":"string","merchant":"string|null","date":"YYYY-MM-DD|null","monthlyIncome":number|null,"familyInfo":{"adults":null,"kids":null,"totalMembers":null},"summary":{"needsTotal":null,"wantsTotal":null,"expenseTotal":null},"items":[{"rawText":"string","description":"string","amount":number,"type":"expense|income","needWantType":"needs|wants|unknown","suggestedCategoryName":"string","notes":"string"}],"warnings":[],"confidence":number}
+Rules: amounts must be numbers not strings. Remove currency symbols. For Indian docs use INR. If date missing return null. Return JSON only, no markdown.`;
+
+        const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'llama-3.2-11b-vision-preview',
+            messages: [{ role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: `data:${file.type};base64,${base64}` } }] }],
+            response_format: { type: 'json_object' }
+          })
+        });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        const groqJson = JSON.parse(data.choices[0].message.content);
+
+        document.getElementById('loader-status').textContent = 'Running deterministic category mapping...';
+        await new Promise(r => setTimeout(r, 500));
+
+        this._hideLoader();
+        const result = ScannerService.processGroqResponse(groqJson, Store.getCategories());
+        this._renderResult(result);
+        return;
+      } catch (e) {
+        console.error('Groq vision failed, using offline fallback:', e);
       }
-      
-      if (window.lucide) lucide.createIcons();
-    }, 3200);
+    }
+
+    // Offline fallback
+    this._showLoader('Processing offline...', 'Using demo extraction for ' + file.name);
+    setTimeout(() => {
+      this._hideLoader();
+      const tplKey = isBudget ? 'monthly_budget' : ['starbucks', 'uber', 'walmart'][Math.floor(Math.random() * 3)];
+      const result = ScannerService.buildDemoExtraction(tplKey);
+      this._renderResult(result);
+    }, 2000);
+  },
+
+  // ── Render pipeline result ──
+  _renderResult(result) {
+    if (!result || !result.items || result.items.length === 0) {
+      Toast.error('Extraction Failed', 'No items could be extracted.');
+      return;
+    }
+
+    const isMulti = result.items.length > 1 || result.documentType === 'budget_sheet';
+
+    if (isMulti) {
+      this._renderMulti(result);
+    } else {
+      this._renderSingle(result);
+    }
+    if (window.lucide) lucide.createIcons();
+  },
+
+  _renderSingle(result) {
+    const item = result.items[0];
+    const el = document.getElementById('scanner-single');
+    el.classList.remove('hidden');
+    document.getElementById('btn-scan-save').classList.remove('hidden');
+
+    document.getElementById('s-desc').value = item.description;
+    document.getElementById('s-amt').value = item.amount;
+    document.getElementById('s-date').value = item.date || Utils.today();
+    document.getElementById('s-type').value = item.type || 'expense';
+    document.getElementById('s-notes').value = item.notes || '';
+    const catSel = document.getElementById('s-cat');
+    if (catSel) { const opt = Array.from(catSel.options).find(o => o.value === item.suggestedCategoryId); if (opt) catSel.value = opt.value; }
+    const conf = document.getElementById('single-conf');
+    const pct = Math.round(item.categoryConfidence * 100);
+    conf.textContent = `Category: ${pct}% (${item.categoryMatchType})`;
+  },
+
+  _renderMulti(result) {
+    const el = document.getElementById('scanner-multi');
+    el.classList.remove('hidden');
+    document.getElementById('btn-ledger-save').classList.remove('hidden');
+
+    // Warnings
+    const warnEl = document.getElementById('scan-warnings');
+    if (result.warnings.length > 0) {
+      const hasDeficit = result.warnings.some(w => w.includes('exceed'));
+      const bg = hasDeficit ? 'var(--color-expense-bg)' : 'rgba(229,139,18,0.08)';
+      const border = hasDeficit ? 'var(--color-expense)' : 'var(--color-warning)';
+      const color = hasDeficit ? 'var(--color-expense)' : 'var(--color-warning)';
+      const icon = hasDeficit ? 'alert-triangle' : 'info';
+      warnEl.innerHTML = `<div style="background:${bg};border:1px solid ${border};border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:8px;color:${color};font-weight:800;font-size:13px;margin-bottom:6px;"><i data-lucide="${icon}" style="width:16px;height:16px;"></i> Validation Warnings</div>
+        <ul style="margin:0;padding-left:20px;font-size:12px;color:var(--text-secondary);line-height:1.6;">${result.warnings.map(w => `<li>${w}</li>`).join('')}</ul>
+      </div>`;
+    }
+
+    // Summary bar for budget sheets
+    const sumEl = document.getElementById('scan-summary');
+    if (result.documentType === 'budget_sheet' && result.monthlyIncome) {
+      const ct = result.computedTotals || {};
+      sumEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+        ${this._summaryChip('Income', result.monthlyIncome, 'var(--color-income)')}
+        ${this._summaryChip('Needs', ct.needs || 0, 'var(--text-secondary)')}
+        ${this._summaryChip('Wants', ct.wants || 0, 'var(--text-secondary)')}
+        ${this._summaryChip('Total Exp.', ct.expense || 0, ct.expense > result.monthlyIncome ? 'var(--color-expense)' : 'var(--text-primary)')}
+      </div>`;
+    }
+
+    // Table rows
+    const tbody = document.getElementById('ledger-tbody');
+    const categories = Store.getCategories();
+    tbody.innerHTML = '';
+
+    result.items.forEach((item, i) => {
+      const catOpts = categories.map(c => `<option value="${c.id}" ${c.id === item.suggestedCategoryId ? 'selected' : ''}>${c.name}</option>`).join('');
+      const confPct = Math.round(item.categoryConfidence * 100);
+      const isLow = item.categoryConfidence < 0.65;
+      const nwBadge = item.needWantType === 'needs'
+        ? '<span style="font-size:9px;font-weight:800;background:rgba(15,169,104,0.1);color:var(--color-income);padding:2px 6px;border-radius:4px;">NEED</span>'
+        : item.needWantType === 'wants'
+        ? '<span style="font-size:9px;font-weight:800;background:rgba(229,139,18,0.1);color:var(--color-warning);padding:2px 6px;border-radius:4px;">WANT</span>'
+        : '';
+      const confColor = isLow ? 'var(--color-expense)' : confPct >= 90 ? 'var(--color-income)' : 'var(--color-warning)';
+      const rowBorder = isLow ? 'border-left:3px solid var(--color-warning);' : '';
+      const flags = result.itemFlags && result.itemFlags.get(i);
+      const flagTitle = flags ? flags.join('; ') : '';
+
+      const tr = document.createElement('tr');
+      tr.className = 'scan-ledger-row';
+      tr.style.cssText = `border-bottom:1px solid var(--glass-border);${rowBorder}`;
+      if (flagTitle) tr.title = flagTitle;
+
+      tr.innerHTML = `
+        <td style="padding:10px;text-align:center;"><input type="checkbox" class="scan-chk" checked style="width:15px;height:15px;accent-color:var(--accent-primary);" /><input type="hidden" class="scan-date" value="${item.date || Utils.today()}" /><input type="hidden" class="scan-type" value="${item.type || 'expense'}" /></td>
+        <td style="padding:8px 10px;"><input type="text" class="scan-desc" value="${Utils.escapeHtml(item.description)}" style="width:100%;border:1px solid var(--glass-border);border-radius:6px;padding:5px 8px;font-size:12px;background:transparent;color:var(--text-primary);" />${nwBadge ? '<div style="margin-top:3px;">'+nwBadge+'</div>' : ''}</td>
+        <td style="padding:8px 10px;"><select class="scan-cat" style="width:100%;border:1px solid var(--glass-border);border-radius:6px;padding:4px;font-size:12px;background:var(--bg-secondary);color:var(--text-primary);">${catOpts}</select></td>
+        <td style="padding:8px 10px;text-align:center;font-size:11px;"><span style="color:${confColor};font-weight:800;">${confPct}%</span>${isLow ? '<div style="font-size:9px;color:var(--color-warning);font-weight:700;">Review</div>' : ''}</td>
+        <td style="padding:8px 10px;text-align:center;">${nwBadge}</td>
+        <td style="padding:8px 10px;text-align:right;"><input type="number" class="scan-amt" value="${item.amount}" style="width:80px;text-align:right;border:1px solid var(--glass-border);border-radius:6px;padding:5px 8px;font-size:12px;background:transparent;color:var(--text-primary);font-family:var(--font-mono);font-weight:700;" /></td>`;
+      tbody.appendChild(tr);
+    });
+
+    // Select-all
+    document.getElementById('ledger-select-all').addEventListener('change', function() {
+      document.querySelectorAll('.scan-chk').forEach(c => c.checked = this.checked);
+    });
+
+    if (window.lucide) lucide.createIcons();
+  },
+
+  _summaryChip(label, value, color) {
+    return `<div style="background:var(--bg-secondary);padding:10px;border-radius:var(--radius-sm);border:1px solid var(--glass-border);text-align:center;">
+      <div style="font-size:9px;color:var(--text-muted);font-weight:800;text-transform:uppercase;">${label}</div>
+      <div style="font-size:14px;font-weight:900;color:${color};font-family:var(--font-mono);margin-top:2px;">₹${value.toLocaleString()}</div>
+    </div>`;
+  },
+
+  // ── Save handlers ──
+  _saveSingle() {
+    const txn = {
+      description: document.getElementById('s-desc').value.trim(),
+      amount: parseFloat(document.getElementById('s-amt').value),
+      category: document.getElementById('s-cat').value,
+      date: document.getElementById('s-date').value,
+      type: document.getElementById('s-type').value,
+      notes: document.getElementById('s-notes').value.trim()
+    };
+    if (!txn.description || isNaN(txn.amount) || txn.amount <= 0) {
+      Toast.warning('Validation', 'Please provide a valid description and positive amount.');
+      return;
+    }
+    Store.addTransaction(txn);
+    Modal.close();
+    Toast.success('Saved', `₹${txn.amount.toLocaleString()} recorded for ${txn.description}.`);
+    this._refresh();
+  },
+
+  _saveMulti() {
+    const rows = document.querySelectorAll('.scan-ledger-row');
+    let count = 0, total = 0;
+    rows.forEach(row => {
+      if (!row.querySelector('.scan-chk').checked) return;
+      const desc = row.querySelector('.scan-desc').value.trim();
+      const amt = parseFloat(row.querySelector('.scan-amt').value);
+      const cat = row.querySelector('.scan-cat').value;
+      const date = row.querySelector('.scan-date').value;
+      const type = row.querySelector('.scan-type').value;
+      if (desc && !isNaN(amt) && amt > 0) {
+        Store.addTransaction({ description: desc, amount: amt, category: cat, date: date, type: type, notes: 'Imported via AI Scanner' });
+        count++; total += amt;
+      }
+    });
+    if (count > 0) {
+      Modal.close();
+      Toast.success('Bulk Import', `${count} items saved, totaling ₹${total.toLocaleString()}.`);
+      this._refresh();
+    } else {
+      Toast.warning('Nothing Selected', 'Check at least one item to import.');
+    }
+  },
+
+  _refresh() {
+    if (Router.currentRoute === '#/transactions' && window.Transactions && Transactions.renderList) Transactions.renderList();
+    else if (Router.currentRoute === '#/' && window.Dashboard && Dashboard.render) Dashboard.render();
+    Sidebar.render();
   }
 };
 
-// Global hook
 window.showReceiptScannerModal = () => ReceiptScanner.showModal();

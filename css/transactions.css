@@ -7,6 +7,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 /* AI Scanner Promo Card */
@@ -14,27 +16,27 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px;
-  background: linear-gradient(135deg, rgba(94, 95, 240, 0.05) 0%, rgba(138, 114, 241, 0.08) 100%);
-  border: 1px solid rgba(94, 95, 240, 0.15);
+  padding: 26px 30px;
+  background: linear-gradient(135deg, rgba(94, 95, 240, 0.05) 0%, rgba(56, 189, 248, 0.08) 100%);
+  border: 1px solid rgba(94, 95, 240, 0.12);
   border-radius: var(--radius-2xl);
-  margin-bottom: 28px;
-  gap: 20px;
+  margin-bottom: 30px;
+  gap: 24px;
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-base);
+  transition: all var(--transition-spring);
 }
 .ai-scanner-promo-card:hover {
-  transform: translateY(-1px);
-  border-color: rgba(94, 95, 240, 0.25);
+  transform: translateY(-2px);
+  border-color: rgba(94, 95, 240, 0.24);
   box-shadow: var(--shadow-md);
 }
 .ai-scanner-promo-card::after {
   content: '';
   position: absolute;
   top: -50%; right: -20%;
-  width: 200px; height: 200px;
+  width: 250px; height: 250px;
   background: radial-gradient(circle, rgba(94, 95, 240, 0.08) 0%, transparent 70%);
   z-index: 1;
   pointer-events: none;
@@ -43,42 +45,43 @@
 .ai-promo-content {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 20px;
   z-index: 2;
 }
 .ai-promo-icon-circle {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: var(--radius-xl);
   background: var(--accent-gradient);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px var(--accent-primary-glow);
+  box-shadow: 0 8px 20px var(--accent-primary-glow);
   flex-shrink: 0;
 }
 .ai-promo-icon-circle svg { width: 22px; height: 22px; }
 
 .ai-promo-text h3 {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 17px;
+  font-weight: 900;
   color: var(--text-primary);
   margin-bottom: 4px;
   display: flex;
   align-items: center;
   gap: 6px;
+  letter-spacing: -0.3px;
 }
 .ai-promo-text p {
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--text-secondary);
   line-height: 1.5;
-  max-width: 620px;
+  max-width: 650px;
 }
 
 .ai-scanner-promo-card button {
   z-index: 2;
-  box-shadow: 0 4px 12px var(--accent-primary-glow);
+  box-shadow: 0 6px 16px var(--accent-primary-glow);
 }
 
 .transactions-filters {
@@ -86,7 +89,7 @@
   background: var(--bg-secondary);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
-  padding: 16px 20px;
+  padding: 18px 24px;
   box-shadow: var(--shadow-sm);
 }
 .filters-row {
@@ -97,7 +100,7 @@
 }
 .filter-search {
   position: relative;
-  flex: 1;
+  flex: 1.5;
   min-width: 240px;
 }
 .filter-search-icon {
@@ -126,16 +129,18 @@
 .summary-bar {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
-  padding: 16px 24px;
+  padding: 14px 20px;
   background: var(--bg-secondary);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
   margin-bottom: 24px;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-secondary);
-  font-weight: 700;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   box-shadow: var(--shadow-sm);
 }
 .summary-bar-item {
@@ -150,6 +155,7 @@
 .summary-bar-item strong {
   font-family: var(--font-primary);
   font-weight: 800;
+  color: var(--text-primary);
 }
 .summary-bar-item strong.text-income { color: var(--color-income); }
 .summary-bar-item strong.text-expense { color: var(--color-expense); }
@@ -173,11 +179,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 800;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
   padding: 20px 0 8px;
   border-bottom: 1px dashed var(--glass-border);
   margin-bottom: 12px;
@@ -191,7 +197,7 @@
   .ai-scanner-promo-card {
     flex-direction: column;
     align-items: flex-start;
-    padding: 20px;
+    padding: 22px;
     gap: 16px;
   }
   .ai-promo-content {
@@ -220,5 +226,42 @@
     flex: 1;
     min-width: 100px;
     justify-content: center;
+  }
+}
+
+/* Premium Mobile Row-to-Card Responsive Design */
+@media (max-width: 580px) {
+  .transaction-row {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 14px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
+    margin-bottom: 8px;
+    box-shadow: var(--shadow-sm);
+  }
+  .transaction-row:hover {
+    padding: 14px 14px;
+    margin: 0 0 8px 0;
+  }
+  .transaction-details {
+    flex: 1;
+  }
+  .transaction-amount {
+    margin-left: auto;
+    font-size: 15px;
+  }
+  .transaction-actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 6px;
+    opacity: 1 !important;
+    border-top: 1px dashed var(--glass-border);
+    padding-top: 6px;
+  }
+  .transaction-actions .btn-icon {
+    width: 32px;
+    height: 32px;
   }
 }

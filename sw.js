@@ -3,7 +3,7 @@
    Cache-first for static assets, network-only for APIs
    ======================================== */
 
-const CACHE_NAME = 'expenseiq-v20';
+const CACHE_NAME = 'expenseiq-v21';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -31,6 +31,9 @@ const STATIC_ASSETS = [
   '/js/router.js',
   '/js/app.js',
   '/js/ai.js',
+  '/js/services/categoryMapper.js',
+  '/js/services/extractionValidator.js',
+  '/js/services/scannerService.js',
   '/js/receiptScanner.js',
   '/js/pwa.js',
   '/js/sync/offlineStore.js',
