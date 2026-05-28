@@ -88,7 +88,12 @@ const Store = {
         }
 
         if (txnRes.status === 'fulfilled' && !txnRes.value.error) {
-          this._saveToBoth(this.KEYS.TRANSACTIONS, txnRes.value.data || [], 'transactions');
+          const remoteTxns = txnRes.value.data || [];
+          const localTxns = this._state.transactions || [];
+          // Merge: keep local pending items that aren't on the server yet
+          const remoteIds = new Set(remoteTxns.map(t => t.id));
+          const localOnlyPending = localTxns.filter(t => !remoteIds.has(t.id) && t.sync_status === 'pending');
+          this._saveToBoth(this.KEYS.TRANSACTIONS, [...remoteTxns, ...localOnlyPending], 'transactions');
         }
         if (budRes.status === 'fulfilled' && !budRes.value.error) {
           const budgets = (budRes.value.data || []).map(b => ({
