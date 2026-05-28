@@ -317,53 +317,133 @@ Rules: amounts must be numbers not strings. Remove ₹ Rs symbols from amounts. 
   },
 
   // ── Save handlers ──
+  _isSaving: false,
+
   _saveSingle() {
+    if (this._isSaving) return;
+    this._isSaving = true;
+
     const txn = {
       description: document.getElementById('s-desc').value.trim(),
       amount: parseFloat(document.getElementById('s-amt').value),
       category: document.getElementById('s-cat').value,
-      date: document.getElementById('s-date').value,
+      date: document.getElementById('s-date').value || Utils.today(),
       type: document.getElementById('s-type').value,
       notes: document.getElementById('s-notes').value.trim()
     };
     if (!txn.description || isNaN(txn.amount) || txn.amount <= 0) {
       Toast.warning('Validation', 'Please provide a valid description and positive amount.');
+      this._isSaving = false;
       return;
     }
+
+    // Validate date is YYYY-MM-DD
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(txn.date)) txn.date = Utils.today();
+
+    // Validate category exists
+    const validCat = Store.getCategory(txn.category);
+    if (!validCat) txn.category = 'cat_other_exp';
+
     Store.addTransaction(txn);
     Modal.close();
     Toast.success('Saved', `₹${txn.amount.toLocaleString()} recorded for ${txn.description}.`);
-    this._refresh();
+    this._scheduleRefresh();
   },
 
   _saveMulti() {
+    if (this._isSaving) return;
+    this._isSaving = true;
+
+    // Disable button to prevent double-click
+    const saveBtn = document.getElementById('btn-ledger-save');
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+      saveBtn.style.opacity = '0.6';
+    }
+
+    // Collect selected rows
     const rows = document.querySelectorAll('.scan-ledger-row');
-    let count = 0, total = 0;
+    const items = [];
+
     rows.forEach(row => {
       if (!row.querySelector('.scan-chk').checked) return;
+
       const desc = row.querySelector('.scan-desc').value.trim();
       const amt = parseFloat(row.querySelector('.scan-amt').value);
-      const cat = row.querySelector('.scan-cat').value;
-      const date = row.querySelector('.scan-date').value;
+      let cat = row.querySelector('.scan-cat').value;
+      let date = row.querySelector('.scan-date').value;
       const type = row.querySelector('.scan-type').value;
+
+      // Normalize date
+      if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) date = Utils.today();
+
+      // Validate category exists, fallback to Other
+      const validCat = Store.getCategory(cat);
+      if (!validCat) cat = 'cat_other_exp';
+
       if (desc && !isNaN(amt) && amt > 0) {
-        Store.addTransaction({ description: desc, amount: amt, category: cat, date: date, type: type, notes: 'Imported via AI Scanner' });
-        count++; total += amt;
+        items.push({
+          description: desc,
+          amount: amt,
+          category: cat,
+          date: date,
+          type: type === 'income' ? 'income' : 'expense',
+          notes: 'Imported via AI Scanner'
+        });
       }
     });
-    if (count > 0) {
-      Modal.close();
-      Toast.success('Bulk Import', `${count} items saved, totaling ₹${total.toLocaleString()}.`);
-      this._refresh();
-    } else {
-      Toast.warning('Nothing Selected', 'Check at least one item to import.');
+
+    if (items.length === 0) {
+      Toast.warning('Nothing Selected', 'Check at least one valid item to import.');
+      this._isSaving = false;
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Import Selected Items'; saveBtn.style.opacity = '1'; }
+      return;
     }
+
+    // Use bulk method — single localStorage write, single event, one SMS
+    const result = Store.addBulkTransactions(items, { source: 'AI Scanner', suppressSMS: true });
+
+    const savedCount = result.saved.length;
+    const failedCount = result.failed.length;
+    const total = result.saved.reduce((s, t) => s + t.amount, 0);
+
+    Modal.close();
+
+    if (failedCount > 0) {
+      Toast.warning('Partial Import', `${savedCount} saved (₹${total.toLocaleString()}), ${failedCount} failed validation.`);
+    } else {
+      Toast.success('Bulk Import', `${savedCount} transactions imported, totaling ₹${total.toLocaleString()}.`);
+    }
+
+    this._scheduleRefresh();
   },
 
-  _refresh() {
-    if (Router.currentRoute === '#/transactions' && window.Transactions && Transactions.renderList) Transactions.renderList();
-    else if (Router.currentRoute === '#/' && window.Dashboard && Dashboard.render) Dashboard.render();
-    Sidebar.render();
+  /**
+   * Schedule a UI refresh after modal close animation completes (200ms).
+   * Uses setTimeout to ensure DOM is clean before re-rendering.
+   */
+  _scheduleRefresh() {
+    setTimeout(() => {
+      this._isSaving = false;
+
+      // Refresh the current page
+      const route = location.hash || '#/';
+      if (route === '#/transactions' && window.Transactions) {
+        // Full render to reset any stale filter state
+        Transactions.render();
+      } else if (route === '#/' && window.Dashboard) {
+        Dashboard.render();
+      }
+
+      // Always refresh sidebar totals
+      if (window.Sidebar) Sidebar.render();
+
+      // Dispatch app-wide event for any other listeners
+      window.dispatchEvent(new CustomEvent('expenseiq:transactions-updated', {
+        detail: { source: 'ai_scanner' }
+      }));
+    }, 300); // 300ms > modal close animation (200ms)
   }
 };
 

@@ -154,7 +154,7 @@ const Store = {
     return txns;
   },
 
-  addTransaction(data) {
+  addTransaction(data, options = {}) {
     const txn = {
       id: Utils.generateId('txn'),
       type: data.type,
@@ -184,12 +184,108 @@ const Store = {
       syncEngine.pushChange('transactions', 'insert', txn);
     }
 
-    // Trigger SMS Notification (instantly sends SMS to user)
-    if (typeof SMS !== 'undefined') {
+    // Trigger SMS Notification (skip for bulk scanner imports)
+    if (typeof SMS !== 'undefined' && !options.suppressSMS) {
       SMS.notify(txn);
     }
 
     return txn;
+  },
+
+  /**
+   * Bulk-add transactions in one batch. Single localStorage write, single event,
+   * one optional summary SMS instead of per-row spam.
+   * @param {Array} items - Array of transaction data objects
+   * @param {object} options - { source: string, suppressSMS: boolean }
+   * @returns {{ saved: Array, failed: Array }}
+   */
+  addBulkTransactions(items, options = {}) {
+    const saved = [];
+    const failed = [];
+    const now = new Date().toISOString();
+    const userId = Auth.getUser()?.id;
+    const deviceId = Utils.getDeviceId();
+
+    items.forEach(data => {
+      try {
+        // Validate minimum requirements
+        if (!data.description || !data.amount || isNaN(parseFloat(data.amount)) || parseFloat(data.amount) <= 0) {
+          failed.push({ data, reason: 'Invalid description or amount' });
+          return;
+        }
+
+        const txn = {
+          id: Utils.generateId('txn'),
+          type: data.type === 'income' ? 'income' : 'expense',
+          category: data.category || 'cat_other_exp',
+          amount: parseFloat(data.amount),
+          description: String(data.description).trim(),
+          date: this._normalizeDate(data.date),
+          notes: data.notes || (options.source ? 'Imported via ' + options.source : ''),
+          split_group_id: null,
+          recurring_id: null,
+          created_at: now,
+          updated_at: now,
+          user_id: userId,
+          version: 1,
+          last_modified_at: now,
+          sync_status: 'pending',
+          device_id: deviceId,
+          conflict_resolution_strategy: 'last-write-wins'
+        };
+        saved.push(txn);
+      } catch (e) {
+        failed.push({ data, reason: e.message });
+      }
+    });
+
+    if (saved.length > 0) {
+      // Single batch write
+      const txns = [...this._state.transactions, ...saved];
+      this._saveToBoth(this.KEYS.TRANSACTIONS, txns, 'transactions');
+
+      // Single batch event
+      EventBus.emit('transactions:bulk-added', { transactions: saved, source: options.source || 'bulk' });
+
+      // Activity log (one entry)
+      const total = saved.reduce((s, t) => s + t.amount, 0);
+      this._logActivity(`Bulk imported ${saved.length} transactions totaling ₹${total.toLocaleString()} via ${options.source || 'bulk'}`);
+
+      // Sync each to Supabase
+      if (!Auth.isGuest() && typeof syncEngine !== 'undefined') {
+        saved.forEach(txn => syncEngine.pushChange('transactions', 'insert', txn));
+      }
+
+      // One summary SMS instead of per-row
+      if (typeof SMS !== 'undefined' && !options.suppressSMS && saved.length > 0) {
+        const summaryTxn = {
+          id: 'bulk_' + Date.now(),
+          description: `${saved.length} items imported via AI Scanner`,
+          amount: total,
+          type: 'expense',
+          category: 'cat_other_exp',
+          created_at: now
+        };
+        SMS.notify(summaryTxn);
+      }
+    }
+
+    return { saved, failed };
+  },
+
+  /**
+   * Normalize a date string to YYYY-MM-DD format.
+   * Handles null, undefined, invalid dates, and common OCR formats.
+   */
+  _normalizeDate(dateStr) {
+    if (!dateStr) return Utils.today();
+    // Already YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    // Try parsing
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) return Utils.toDateString(d);
+    // Fallback
+    return Utils.today();
   },
 
   updateTransaction(id, data) {
