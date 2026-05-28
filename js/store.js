@@ -92,11 +92,17 @@ const Store = {
             ...t,
             date: t.date ? t.date.substring(0, 10) : Utils.today()
           }));
-          const localTxns = this._state.transactions || [];
-          // Merge: keep local pending items that aren't on the server yet
+          const localTxns = (this._state.transactions || []).map(t => ({
+            ...t,
+            date: t.date ? t.date.substring(0, 10) : Utils.today()
+          }));
+          // Merge: keep ALL local items that aren't on the server yet
+          // (don't filter by sync_status — that field can be lost/changed)
           const remoteIds = new Set(remoteTxns.map(t => t.id));
-          const localOnlyPending = localTxns.filter(t => !remoteIds.has(t.id) && t.sync_status === 'pending');
-          this._saveToBoth(this.KEYS.TRANSACTIONS, [...remoteTxns, ...localOnlyPending], 'transactions');
+          const localOnly = localTxns.filter(t => !remoteIds.has(t.id));
+          const merged = [...remoteTxns, ...localOnly];
+          console.log(`Store.init merge: ${remoteTxns.length} remote + ${localOnly.length} local-only = ${merged.length} total`);
+          this._saveToBoth(this.KEYS.TRANSACTIONS, merged, 'transactions');
         }
         if (budRes.status === 'fulfilled' && !budRes.value.error) {
           const budgets = (budRes.value.data || []).map(b => ({
