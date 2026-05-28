@@ -89,10 +89,13 @@ const Utils = {
     return this.formatDate(isoStr, 'short');
   },
 
-  // Get date string YYYY-MM-DD
+  // Get date string YYYY-MM-DD (local timezone, not UTC)
   toDateString(date) {
     const d = date instanceof Date ? date : new Date(date);
-    return d.toISOString().split('T')[0];
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   },
 
   // Get month string YYYY-MM

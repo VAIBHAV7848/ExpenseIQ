@@ -402,7 +402,7 @@ Rules: amounts must be numbers not strings. Remove ₹ Rs symbols from amounts. 
     }
 
     // Use bulk method — single localStorage write, single event, one SMS
-    const result = Store.addBulkTransactions(items, { source: 'AI Scanner', suppressSMS: true });
+    const result = Store.addBulkTransactions(items, { source: 'AI Scanner', suppressSMS: false });
 
     const savedCount = result.saved.length;
     const failedCount = result.failed.length;
