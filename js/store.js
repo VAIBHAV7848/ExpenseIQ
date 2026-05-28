@@ -88,7 +88,10 @@ const Store = {
         }
 
         if (txnRes.status === 'fulfilled' && !txnRes.value.error) {
-          const remoteTxns = txnRes.value.data || [];
+          const remoteTxns = (txnRes.value.data || []).map(t => ({
+            ...t,
+            date: t.date ? t.date.substring(0, 10) : Utils.today()
+          }));
           const localTxns = this._state.transactions || [];
           // Merge: keep local pending items that aren't on the server yet
           const remoteIds = new Set(remoteTxns.map(t => t.id));
@@ -136,8 +139,9 @@ const Store = {
     if (filters.type && filters.type !== 'all') txns = txns.filter(t => t.type === filters.type);
     if (filters.category) txns = txns.filter(t => t.category === filters.category);
     if (filters.categories && filters.categories.length) txns = txns.filter(t => filters.categories.includes(t.category));
-    if (filters.startDate) txns = txns.filter(t => t.date >= filters.startDate);
-    if (filters.endDate) txns = txns.filter(t => t.date <= filters.endDate);
+    // Date filters: normalize to YYYY-MM-DD to handle Supabase ISO timestamps
+    if (filters.startDate) txns = txns.filter(t => (t.date || '').substring(0, 10) >= filters.startDate);
+    if (filters.endDate) txns = txns.filter(t => (t.date || '').substring(0, 10) <= filters.endDate);
     if (filters.search) {
       const q = filters.search.toLowerCase();
       txns = txns.filter(t => (t.description || '').toLowerCase().includes(q) || (t.notes || '').toLowerCase().includes(q));
@@ -149,8 +153,14 @@ const Store = {
     const sortOrder = filters.sortOrder || 'desc';
     txns.sort((a, b) => {
       if (sortKey === 'date') {
-        const da = new Date(a.date + 'T' + (a.createdAt ? a.createdAt.split('T')[1] : '00:00:00'));
-        const db = new Date(b.date + 'T' + (b.createdAt ? b.createdAt.split('T')[1] : '00:00:00'));
+        const da = new Date(a.date);
+        const db = new Date(b.date);
+        if (da.getTime() === db.getTime()) {
+          // Secondary sort by created_at for same-date items
+          return sortOrder === 'desc'
+            ? new Date(b.created_at || 0) - new Date(a.created_at || 0)
+            : new Date(a.created_at || 0) - new Date(b.created_at || 0);
+        }
         return sortOrder === 'desc' ? db - da : da - db;
       }
       if (sortKey === 'amount') return sortOrder === 'desc' ? b.amount - a.amount : a.amount - b.amount;

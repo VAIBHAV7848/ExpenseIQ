@@ -261,6 +261,10 @@ class SyncEngine {
         if (!Store._state[stateKey]) Store._state[stateKey] = [];
 
         for (const remoteRecord of remote) {
+          // Normalize date field for transactions (Supabase may return full ISO timestamps)
+          if (table === 'transactions' && remoteRecord.date && remoteRecord.date.length > 10) {
+            remoteRecord.date = remoteRecord.date.substring(0, 10);
+          }
           const localIdx = Store._state[stateKey].findIndex(r => r.id === remoteRecord.id);
 
           if (localIdx === -1) {

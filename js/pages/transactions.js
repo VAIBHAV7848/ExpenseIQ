@@ -175,8 +175,9 @@ const Transactions = {
       return;
     }
 
-    // Group by date
-    const grouped = Utils.groupBy(txns, 'date');
+    // Group by date (normalize to YYYY-MM-DD to handle Supabase ISO timestamps)
+    const normalizedTxns = txns.map(t => ({ ...t, date: (t.date || '').substring(0, 10) || Utils.today() }));
+    const grouped = Utils.groupBy(normalizedTxns, 'date');
     const sortedDates = Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a));
 
     let html = '';
