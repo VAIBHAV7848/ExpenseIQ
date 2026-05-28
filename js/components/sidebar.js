@@ -24,7 +24,7 @@ const Sidebar = {
         </div>
         <div class="sidebar-logo-text">
           <h1>ExpenseIQ</h1>
-          <span>Smart Tracker</span>
+          <span>Smart Finance OS</span>
         </div>
       </div>
       <div class="sidebar-nav">

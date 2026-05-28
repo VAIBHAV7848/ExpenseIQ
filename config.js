@@ -1,11 +1,14 @@
 /* ========================================
-   ExpenseIQ — Configuration
-   Supabase anon key is a publishable client key (protected by RLS)
-   For AI features, create config.local.js with GROQ_API_KEY
+   ExpenseIQ — Configuration Template
+   ========================================
+   INSTRUCTIONS:
+   1. Copy this file to config.js
+   2. Replace placeholder values with your actual API keys
+   3. config.js is gitignored — never commit real keys
    ======================================== */
 
-window.CONFIG = {
+const CONFIG = {
   SUPABASE_URL: 'YOUR_SUPABASE_URL_HERE',
   SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY_HERE',
-  GROQ_API_KEY: ''
+  GROQ_API_KEY: 'YOUR_GROQ_API_KEY_HERE'
 };

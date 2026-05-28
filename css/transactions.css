@@ -1,35 +1,224 @@
 /* ========================================
    ExpenseIQ — Transactions Styles
    ======================================== */
-.transactions-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.transactions-filters { margin-bottom: 20px; }
-.filters-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.filter-search { position: relative; flex: 1; min-width: 200px; }
-.filter-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted); pointer-events: none; }
-.filter-search input { padding-left: 36px; }
-.filter-date { max-width: 160px; }
-.filter-category { max-width: 200px; }
+
+.transactions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+/* AI Scanner Promo Card */
+.ai-scanner-promo-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(94, 95, 240, 0.05) 0%, rgba(138, 114, 241, 0.08) 100%);
+  border: 1px solid rgba(94, 95, 240, 0.15);
+  border-radius: var(--radius-2xl);
+  margin-bottom: 28px;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+.ai-scanner-promo-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(94, 95, 240, 0.25);
+  box-shadow: var(--shadow-md);
+}
+.ai-scanner-promo-card::after {
+  content: '';
+  position: absolute;
+  top: -50%; right: -20%;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(94, 95, 240, 0.08) 0%, transparent 70%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.ai-promo-content {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  z-index: 2;
+}
+.ai-promo-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-xl);
+  background: var(--accent-gradient);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px var(--accent-primary-glow);
+  flex-shrink: 0;
+}
+.ai-promo-icon-circle svg { width: 22px; height: 22px; }
+
+.ai-promo-text h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ai-promo-text p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  max-width: 620px;
+}
+
+.ai-scanner-promo-card button {
+  z-index: 2;
+  box-shadow: 0 4px 12px var(--accent-primary-glow);
+}
+
+.transactions-filters {
+  margin-bottom: 24px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: 16px 20px;
+  box-shadow: var(--shadow-sm);
+}
+.filters-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.filter-search {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+.filter-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.filter-search input {
+  padding-left: 40px;
+  background: var(--bg-primary);
+}
+.filter-date {
+  max-width: 150px;
+  background: var(--bg-primary);
+}
+.filter-category {
+  max-width: 180px;
+  background: var(--bg-primary);
+}
 
 .summary-bar {
-  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-  padding: 14px 20px; background: var(--glass-bg); border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg); margin-bottom: 20px; font-size: 13px; color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 24px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  margin-bottom: 24px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
 }
-.summary-bar-item strong { font-family: var(--font-mono); }
+.summary-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg-primary);
+  border: 1px solid var(--glass-border);
+}
+.summary-bar-item strong {
+  font-family: var(--font-primary);
+  font-weight: 800;
+}
+.summary-bar-item strong.text-income { color: var(--color-income); }
+.summary-bar-item strong.text-expense { color: var(--color-expense); }
 
 .transactions-list-container {
-  background: var(--glass-bg); backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border); border-radius: var(--radius-xl); padding: 8px 20px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  padding: 12px 24px 24px;
+  box-shadow: var(--shadow-sm);
 }
 
-.date-group { margin-bottom: 8px; }
+.date-group {
+  margin-bottom: 20px;
+}
+.date-group:last-child {
+  margin-bottom: 0;
+}
+
 .date-header {
-  display: flex; justify-content: space-between; align-items: center;
-  font-size: 13px; font-weight: 600; color: var(--text-muted);
-  padding: 12px 0 4px; border-bottom: 1px solid var(--glass-border); margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 20px 0 8px;
+  border-bottom: 1px dashed var(--glass-border);
+  margin-bottom: 12px;
+}
+.date-header span:last-child {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+@media (max-width: 1024px) {
+  .ai-scanner-promo-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px;
+    gap: 16px;
+  }
+  .ai-promo-content {
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .ai-scanner-promo-card button {
+    width: 100%;
+  }
 }
 
 @media (max-width: 768px) {
-  .filters-row { flex-direction: column; align-items: stretch; }
-  .filter-date, .filter-category { max-width: 100%; }
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .filter-search, .filter-date, .filter-category {
+    max-width: 100%;
+    width: 100%;
+  }
+  .summary-bar {
+    padding: 12px;
+  }
+  .summary-bar-item {
+    flex: 1;
+    min-width: 100px;
+    justify-content: center;
+  }
 }

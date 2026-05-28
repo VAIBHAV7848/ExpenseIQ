@@ -10,7 +10,7 @@ const Login = {
     wrap.innerHTML = `
       <div class="login-container">
         <div class="login-logo animate-bounce-in" style="animation-delay: 100ms">
-          💰
+          <i data-lucide="wallet"></i>
         </div>
         <h1 class="login-title animate-fade-in-up" style="animation-delay: 200ms">ExpenseIQ</h1>
         <p class="login-subtitle animate-fade-in-up" style="animation-delay: 300ms">Smart financial tracking, powered by AI.</p>

@@ -23,15 +23,31 @@ const Transactions = {
 
     content.innerHTML = `
       <div class="transactions-header">
-        <div></div>
-        <div style="display:flex; gap:8px;">
-          <button class="btn btn-primary animate-fade-in-right" onclick="window.showAddTransactionModal()">
+        <div style="display:flex; gap:8px; margin-left:auto;">
+          <button class="btn btn-primary animate-fade-in-right" onclick="window.showReceiptScannerModal()" style="background:var(--accent-gradient);">
+            <i data-lucide="sparkles"></i> AI Scanner
+          </button>
+          <button class="btn btn-secondary animate-fade-in-right" style="animation-delay:50ms;" onclick="window.showAddTransactionModal()">
             <i data-lucide="plus"></i> Add New
           </button>
-          <button class="btn btn-secondary animate-fade-in-right" style="animation-delay:50ms;" onclick="Transactions.exportCSV()">
-            <i data-lucide="download"></i> CSV
+          <button class="btn btn-secondary animate-fade-in-right" style="animation-delay:100ms;" onclick="Transactions.exportCSV()">
+            <i data-lucide="download"></i> Export CSV
           </button>
         </div>
+      </div>
+
+      <!-- Flagship AI Receipt Scanner Promo Card -->
+      <div class="ai-scanner-promo-card animate-fade-in-down">
+        <div class="ai-promo-content">
+          <div class="ai-promo-icon-circle"><i data-lucide="sparkles"></i></div>
+          <div class="ai-promo-text">
+            <h3>AI Receipt Scanner</h3>
+            <p>Upload a photo of your receipt or invoice. Our smart parser automatically extracts merchant, amount, category, date, and notes in real time.</p>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="window.showReceiptScannerModal()" style="background:var(--accent-gradient);">
+          <i data-lucide="scan"></i> Scan Receipt
+        </button>
       </div>
 
       <div class="transactions-filters animate-fade-in-up" style="animation-delay: 50ms">
@@ -57,7 +73,6 @@ const Transactions = {
           <input type="date" id="tx-end" class="form-input filter-date" value="${this.currentFilters.endDate}">
         </div>
       </div>
-
 
       <div class="summary-bar animate-fade-in-up" style="animation-delay: 100ms" id="tx-summary-bar">
         <!-- Rendered via renderList() -->
