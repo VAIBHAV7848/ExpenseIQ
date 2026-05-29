@@ -197,10 +197,38 @@
   position: relative;
   overflow: hidden;
 }
+
+.chart-card::after, .recent-transactions-card::after, .budget-overview-card::after, .premium-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, transparent 40%, var(--accent-primary) 50%, var(--accent-secondary) 60%, transparent 70%);
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  transition: opacity var(--transition-slow);
+  opacity: 0;
+}
+
+.chart-card:hover::after, .recent-transactions-card:hover::after, .budget-overview-card:hover::after, .premium-card:hover::after {
+  opacity: 1;
+  animation: borderGlow 3s infinite linear;
+}
+
 .chart-card:hover, .recent-transactions-card:hover, .budget-overview-card:hover, .premium-card:hover {
-  border-color: var(--glass-border-hover);
-  box-shadow: var(--shadow-xl);
+  border-color: transparent;
+  box-shadow: var(--shadow-xl), 0 0 20px rgba(99, 102, 241, 0.15);
   transform: translateY(-4px) scale(1.008);
+}
+
+@keyframes borderGlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 .card-header {
   display: flex;

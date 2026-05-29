@@ -4,9 +4,9 @@
 import handler from '../api/send-sms.js';
 
 // Setup Mock environment variables for verification
-process.env.TWILIO_ACCOUNT_SID = 'ACmockaccountsid1234567890';
-process.env.TWILIO_AUTH_TOKEN = 'mockauthtoken1234567890';
-process.env.TWILIO_PHONE_NUMBER = '+15555555555';
+process.env.TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID || 'ACmockaccountsid1234567890';
+process.env.TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN || 'mockauthtoken1234567890';
+process.env.TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER || '+15555555555';
 
 const mockReq = {
   method: 'POST',

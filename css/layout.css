@@ -111,9 +111,10 @@
   width: 4px;
   border-radius: 0 4px 4px 0;
   background: var(--accent-primary);
+  box-shadow: 0 0 14px 2px var(--accent-primary);
 }
 .nav-item svg { width: 18px; height: 18px; transition: transform var(--transition-spring); }
-.nav-item:hover svg { transform: scale(1.1); }
+.nav-item:hover svg { transform: scale(1.12) rotate(-5deg); }
 .nav-item-badge {
   margin-left: auto;
   background: var(--color-expense);

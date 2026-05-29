@@ -271,3 +271,45 @@ input:-webkit-autofill {
 .bg-gradient-soft {
   background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
 }
+
+/* Dynamic Aurora Mesh Glows */
+.mesh-glow-1 {
+  position: fixed;
+  top: -10%;
+  left: -10%;
+  width: 50vw;
+  height: 50vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
+  z-index: -1;
+  pointer-events: none;
+  animation: floatGlow1 25s infinite alternate ease-in-out;
+}
+.mesh-glow-2 {
+  position: fixed;
+  bottom: -10%;
+  right: -10%;
+  width: 60vw;
+  height: 60vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.05) 0%, transparent 70%);
+  z-index: -1;
+  pointer-events: none;
+  animation: floatGlow2 30s infinite alternate ease-in-out;
+}
+
+[data-theme="dark"] .mesh-glow-1 {
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+}
+[data-theme="dark"] .mesh-glow-2 {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+}
+
+@keyframes floatGlow1 {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(12%, 18%) scale(1.25); }
+}
+@keyframes floatGlow2 {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-12%, -18%) scale(1.15); }
+}
