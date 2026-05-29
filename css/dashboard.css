@@ -17,12 +17,12 @@
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-base);
+  transition: var(--transition-spring);
 }
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--accent-primary-glow);
+  transform: translateY(-4px) scale(1.008);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--glass-border-hover);
 }
 
 .stat-card::before {
@@ -125,10 +125,11 @@
   padding: 28px;
   text-align: center;
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-base);
+  transition: var(--transition-spring);
 }
 .health-score-card:hover {
-  box-shadow: var(--shadow-md);
+  transform: translateY(-4px) scale(1.008);
+  box-shadow: var(--shadow-xl);
   border-color: var(--glass-border-hover);
 }
 .health-gauge { position: relative; width: 140px; height: 75px; margin: 0 auto 12px; }
@@ -150,12 +151,13 @@
   border-radius: var(--radius-2xl);
   padding: 24px;
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-base);
+  transition: var(--transition-spring);
   display: flex;
   flex-direction: column;
 }
 .ai-insights-card:hover {
-  box-shadow: var(--shadow-md);
+  transform: translateY(-4px) scale(1.008);
+  box-shadow: var(--shadow-xl);
   border-color: var(--glass-border-hover);
 }
 .ai-insights-content { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; flex: 1; justify-content: center; }
@@ -191,7 +193,7 @@
 .budget-mini-item { padding: 14px 0; }
 .budget-mini-item:first-child { padding-top: 4px; }
 .budget-mini-item:last-child { padding-bottom: 4px; }
-.budget-mini-item + .budget-mini-item { border-top: 1px dashed var(--glass-border); }
+.budget-mini-item + .budget-mini-item { border-top: 1px solid var(--glass-border); }
 .budget-mini-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .budget-mini-label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--text-secondary); }
 .cat-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }

@@ -20,7 +20,13 @@
 }
 .btn svg { width: 16px; height: 16px; transition: transform var(--transition-fast); }
 .btn:hover svg { transform: scale(1.1); }
-.btn:active { transform: scale(0.98); }
+.btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--shadow-md);
+}
+.btn:active {
+  transform: translateY(0) scale(0.96);
+}
 
 .btn-sm { padding: 8px 16px; font-size: 12px; border-radius: var(--radius-md); }
 .btn-icon { width: 40px; height: 40px; padding: 0; border-radius: var(--radius-md); }
@@ -29,17 +35,18 @@
   background: var(--accent-gradient);
   color: white;
   box-shadow: 0 4px 12px var(--accent-primary-glow);
+  transition: var(--transition-spring);
 }
 .btn-primary:hover {
   background: var(--accent-gradient-hover);
-  box-shadow: 0 6px 20px var(--accent-primary-glow);
-  transform: translateY(-1px);
+  box-shadow: 0 8px 24px var(--accent-primary-glow);
 }
 
 .btn-secondary {
   background: var(--bg-primary);
   color: var(--text-primary);
   border: 1px solid var(--glass-border);
+  transition: var(--transition-spring);
 }
 .btn-secondary:hover {
   border-color: var(--glass-border-hover);
@@ -180,17 +187,20 @@
 }
 
 /* ═══ CARDS ═══ */
-.chart-card, .recent-transactions-card, .budget-overview-card {
+.chart-card, .recent-transactions-card, .budget-overview-card, .premium-card {
   background: var(--bg-secondary);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-2xl);
   padding: 24px;
-  transition: all var(--transition-base);
+  transition: var(--transition-spring);
   box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
 }
-.chart-card:hover, .recent-transactions-card:hover, .budget-overview-card:hover {
+.chart-card:hover, .recent-transactions-card:hover, .budget-overview-card:hover, .premium-card:hover {
   border-color: var(--glass-border-hover);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-4px) scale(1.008);
 }
 .card-header {
   display: flex;

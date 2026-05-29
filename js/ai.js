@@ -8,31 +8,41 @@ const AI = {
   _insightCache: {},
 
   isAvailable() {
-    if (!window.CONFIG || !CONFIG.GROQ_API_KEY ||
-        CONFIG.GROQ_API_KEY === 'YOUR_GROQ_API_KEY_HERE') return false;
-    return true;
+    if (!window.CONFIG) return false;
+    if (CONFIG.USE_SERVER_PROXY) return true;
+    if (CONFIG.GROQ_API_KEY && CONFIG.GROQ_API_KEY !== 'YOUR_GROQ_API_KEY_HERE') return true;
+    return false;
+  },
+
+  async _fetchGroq(messages, model = 'llama-3.1-8b-instant', maxTokens = 500) {
+    const useProxy = window.CONFIG && CONFIG.USE_SERVER_PROXY;
+    const url = useProxy ? '/api/ai-proxy' : 'https://api.groq.com/openai/v1/chat/completions';
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (!useProxy) {
+      headers['Authorization'] = 'Bearer ' + CONFIG.GROQ_API_KEY;
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        model: model,
+        max_tokens: maxTokens,
+        messages: messages
+      })
+    });
+    if (!response.ok) throw new Error('Groq request failed: ' + response.status);
+    return await response.json();
   },
 
   async _call(systemPrompt, userMessage, maxTokens = 500) {
     if (!this.isAvailable()) return null;
     try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + CONFIG.GROQ_API_KEY,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
-          max_tokens: maxTokens,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMessage }
-          ]
-        })
-      });
-      if (!response.ok) throw new Error('Groq API ' + response.status);
-      const data = await response.json();
+      const data = await this._fetchGroq([
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage }
+      ], 'llama-3.1-8b-instant', maxTokens);
       return data.choices[0].message.content.trim();
     } catch (error) {
       console.error('AI call failed:', error);
@@ -138,17 +148,12 @@ const AI = {
 
     if (!this.isAvailable()) return null;
     try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + CONFIG.GROQ_API_KEY,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ model: 'llama-3.1-8b-instant', max_tokens: 200, messages: safeMessages })
-      });
-      const data = await response.json();
+      const data = await this._fetchGroq(safeMessages, 'llama-3.1-8b-instant', 200);
       return data.choices[0].message.content.trim();
-    } catch { return null; }
+    } catch (e) {
+      console.error('getFinancialAdvice failed:', e);
+      return null;
+    }
   },
 
   async suggestBudget() {

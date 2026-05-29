@@ -25,12 +25,12 @@
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-spring);
+  transition: var(--transition-spring);
 }
 .ai-scanner-promo-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px) scale(1.008);
   border-color: rgba(94, 95, 240, 0.24);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-xl);
 }
 .ai-scanner-promo-card::after {
   content: '';
@@ -185,7 +185,7 @@
   text-transform: uppercase;
   letter-spacing: 1.2px;
   padding: 20px 0 8px;
-  border-bottom: 1px dashed var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
   margin-bottom: 12px;
 }
 .date-header span:last-child {

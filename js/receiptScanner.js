@@ -144,7 +144,7 @@ const ReceiptScanner = {
     const isBudget = ScannerService.isBudgetFile(file.name);
 
     // Try Groq Vision if available
-    if (typeof CONFIG !== 'undefined' && CONFIG.GROQ_API_KEY && CONFIG.GROQ_API_KEY !== 'YOUR_GROQ_API_KEY_HERE') {
+    if (typeof AI !== 'undefined' && AI.isAvailable()) {
       this._showLoader('Uploading to Groq Cloud...', 'Preparing document...');
       try {
         const base64 = await new Promise((resolve, reject) => {
@@ -159,17 +159,11 @@ Return ONLY valid JSON (no markdown, no explanation, no code fences) using this 
 {"documentType":"receipt|bill|invoice|budget_sheet|handwritten_expense_sheet|unknown","currency":"INR","title":"string","merchant":"string or null","date":"YYYY-MM-DD or null","monthlyIncome":0,"familyInfo":{"adults":0,"kids":0,"totalMembers":0},"summary":{"needsTotal":0,"wantsTotal":0,"expenseTotal":0},"items":[{"rawText":"original text","description":"cleaned name","amount":0,"type":"expense","needWantType":"needs or wants or unknown","suggestedCategoryName":"Food or Rent or Utilities or Transport or Education or Health or Shopping or Entertainment or Other","notes":""}],"warnings":[],"confidence":90}
 Rules: amounts must be numbers not strings. Remove ₹ Rs symbols from amounts. For Indian docs use INR. If date missing use null. Every row in the document must be a separate item. Do not skip any rows. Return ONLY the JSON object.`;
 
-        const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-            max_tokens: 4096,
-            messages: [{ role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: `data:${file.type};base64,${base64}` } }] }]
-          })
-        });
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        const data = await resp.json();
+        const data = await AI._fetchGroq(
+          [{ role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: `data:${file.type};base64,${base64}` } }] }],
+          'meta-llama/llama-4-scout-17b-16e-instruct',
+          4096
+        );
         let rawContent = data.choices[0].message.content.trim();
         // Strip markdown code fences if present
         rawContent = rawContent.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/,'');

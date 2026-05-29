@@ -7,9 +7,9 @@
   background: var(--accent-gradient); color: white;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; box-shadow: var(--shadow-glow-lg);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: var(--transition-spring);
 }
-#ai-chat-fab:hover { transform: scale(1.1); }
+#ai-chat-fab:hover { transform: scale(1.12) rotate(6deg); box-shadow: 0 12px 32px var(--accent-primary-glow); }
 #ai-chat-fab svg { width: 28px; height: 28px; }
 
 .ai-chat-widget {
@@ -18,9 +18,9 @@
   background: var(--bg-secondary); backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border); border-radius: var(--radius-2xl);
   display: flex; flex-direction: column; box-shadow: var(--shadow-xl);
-  transform-origin: bottom right; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-origin: bottom right; transition: var(--transition-spring);
 }
-.ai-chat-widget.hidden { transform: scale(0); opacity: 0; pointer-events: none; }
+.ai-chat-widget.hidden { transform: scale(0.85) translateY(20px); opacity: 0; pointer-events: none; }
 
 .ai-chat-header {
   padding: 16px 20px; border-bottom: 1px solid var(--glass-border);
@@ -65,8 +65,9 @@
 .ai-chat-send {
   width: 40px; height: 40px; border-radius: 50%; background: var(--accent-primary);
   color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: all var(--transition-fast);
+  transition: var(--transition-spring);
 }
+.ai-chat-send:hover { transform: scale(1.1); box-shadow: 0 4px 12px var(--accent-primary-glow); }
 .ai-chat-send:active { transform: scale(0.95); }
 .ai-chat-send svg { width: 18px; height: 18px; }
 

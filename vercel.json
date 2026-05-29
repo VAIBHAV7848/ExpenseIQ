@@ -2,5 +2,9 @@
   "buildCommand": "node build.js",
   "installCommand": "echo 'no deps'",
   "outputDirectory": ".",
-  "framework": null
+  "framework": null,
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ]
 }
