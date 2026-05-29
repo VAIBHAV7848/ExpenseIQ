@@ -280,10 +280,11 @@ input:-webkit-autofill {
   width: 50vw;
   height: 50vw;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--glow-color-1, rgba(99, 102, 241, 0.05)) 0%, transparent 70%);
   z-index: -1;
   pointer-events: none;
   animation: floatGlow1 25s infinite alternate ease-in-out;
+  transition: background 1.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .mesh-glow-2 {
   position: fixed;
@@ -292,17 +293,18 @@ input:-webkit-autofill {
   width: 60vw;
   height: 60vw;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.05) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--glow-color-2, rgba(14, 165, 233, 0.05)) 0%, transparent 70%);
   z-index: -1;
   pointer-events: none;
   animation: floatGlow2 30s infinite alternate ease-in-out;
+  transition: background 1.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 [data-theme="dark"] .mesh-glow-1 {
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--glow-color-1, rgba(99, 102, 241, 0.12)) 0%, transparent 70%);
 }
 [data-theme="dark"] .mesh-glow-2 {
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--glow-color-2, rgba(139, 92, 246, 0.1)) 0%, transparent 70%);
 }
 
 @keyframes floatGlow1 {

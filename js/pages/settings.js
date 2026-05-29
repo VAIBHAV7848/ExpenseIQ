@@ -80,6 +80,42 @@ const Settings = {
              <div class="toggle-slider"></div>
           </label>
         </div>
+
+        <div style="margin-top: 20px; border-top: 1px solid var(--glass-border); padding-top: 20px;">
+          <div class="settings-row-label" style="margin-bottom: 4px; font-weight: 700;">Ambient Atmosphere</div>
+          <div class="settings-row-desc" style="margin-bottom: 16px;">Customize the animated background aura meshes in real-time.</div>
+          <div class="aurora-preset-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px;">
+            ${Object.entries(Utils.AuroraPresets).map(([key, p]) => {
+              const activeKey = localStorage.getItem('expenseiq_aurora') || 'cyberpunk';
+              const isActive = key === activeKey;
+              let dotColor = 'linear-gradient(135deg, #6366f1, #06b6d4)';
+              if (key === 'aurora') dotColor = 'linear-gradient(135deg, #8b5cf6, #ec4899)';
+              if (key === 'boreal') dotColor = 'linear-gradient(135deg, #10b981, #3b82f6)';
+              if (key === 'solar') dotColor = 'linear-gradient(135deg, #f59e0b, #f43f5e)';
+              if (key === 'quartz') dotColor = 'linear-gradient(135deg, #94a3b8, #cbd5e1)';
+              
+              return `
+                <div class="aurora-preset-card ${isActive ? 'active' : ''}" data-preset="${key}" style="
+                  background: var(--bg-primary);
+                  border: 1px solid ${isActive ? 'var(--accent-primary)' : 'var(--glass-border)'};
+                  padding: 12px;
+                  border-radius: var(--radius-lg);
+                  cursor: pointer;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  gap: 8px;
+                  text-align: center;
+                  box-shadow: ${isActive ? '0 0 12px var(--accent-primary-glow)' : 'var(--shadow-sm)'};
+                  transition: all var(--transition-base);
+                ">
+                  <div style="width: 24px; height: 24px; border-radius: 50%; background: ${dotColor}; box-shadow: 0 4px 10px rgba(0,0,0,0.15);"></div>
+                  <div style="font-size: 12px; font-weight: 700; color: var(--text-primary);">${p.name}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
       </div>
 
       <div class="settings-section animate-fade-in-up" style="animation-delay: 80ms;">
@@ -298,6 +334,26 @@ const Settings = {
       Store.updateSettings({ theme: t });
       document.documentElement.setAttribute('data-theme', t);
       EventBus.emit('theme:changed', t);
+    });
+
+    // Ambient Aurora Preset Click handlers
+    document.querySelectorAll('.aurora-preset-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const preset = card.dataset.preset;
+        Utils.applyAuroraPreset(preset);
+        
+        // Update selection UI instantly
+        document.querySelectorAll('.aurora-preset-card').forEach(c => {
+          c.classList.remove('active');
+          c.style.borderColor = 'var(--glass-border)';
+          c.style.boxShadow = 'var(--shadow-sm)';
+        });
+        card.classList.add('active');
+        card.style.borderColor = 'var(--accent-primary)';
+        card.style.boxShadow = '0 0 12px var(--accent-primary-glow)';
+        
+        Toast.success('Atmosphere Applied', Utils.AuroraPresets[preset].name);
+      });
     });
 
     document.getElementById('set-alert')?.addEventListener('change', (e) => {

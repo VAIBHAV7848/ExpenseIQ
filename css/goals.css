@@ -136,3 +136,209 @@
   .goals-summary { grid-template-columns: 1fr; gap: 16px; }
   .goals-grid { grid-template-columns: 1fr; gap: 16px; }
 }
+
+/* Savings Quest RPG Leveling and Roadmap Timeline */
+.rpg-level-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  padding: 24px;
+  margin-bottom: 32px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  animation: fadeIn 0.4s ease;
+}
+.rpg-level-emblem-container {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, #8b5cf6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 28px;
+  font-weight: 800;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  position: relative;
+}
+.rpg-level-emblem-glow {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px dashed var(--accent-primary);
+  animation: spin 16s linear infinite;
+  opacity: 0.5;
+}
+.rpg-level-info {
+  flex: 1;
+}
+.rpg-level-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.rpg-level-number {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+.rpg-level-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.08);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+.rpg-xp-bar-container {
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+.rpg-xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary), #8b5cf6);
+  border-radius: var(--radius-full);
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+}
+
+/* Connected Roadmap Connectors */
+.roadmap-container {
+  position: relative;
+  max-width: 800px;
+  margin: 48px auto;
+  padding: 0 16px;
+}
+.roadmap-track {
+  position: absolute;
+  left: 50%;
+  top: 40px;
+  bottom: 40px;
+  width: 4px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+  transform: translateX(-50%);
+  z-index: 1;
+}
+.roadmap-track-fill {
+  position: absolute;
+  left: 50%;
+  top: 40px;
+  width: 4px;
+  background: linear-gradient(180deg, var(--color-income) 0%, var(--accent-primary) 100%);
+  border-radius: var(--radius-full);
+  transform: translateX(-50%);
+  z-index: 2;
+  transition: height 1s ease;
+}
+
+/* Quest Node Card layout */
+.quest-node {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 48px;
+  width: 100%;
+  position: relative;
+  z-index: 3;
+}
+.quest-node.right {
+  justify-content: flex-end;
+}
+
+.quest-node-bubble {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 3px solid var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+.quest-node.completed .quest-node-bubble {
+  border-color: var(--color-income);
+  background: var(--color-income-bg);
+  color: var(--color-income);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.35);
+}
+.quest-node.active .quest-node-bubble {
+  border-color: var(--accent-primary);
+  background: var(--bg-secondary);
+  color: var(--accent-primary);
+  box-shadow: 0 0 15px var(--accent-primary-glow);
+  animation: pulseGlow 2s infinite alternate;
+}
+
+.quest-card-wrapper {
+  width: 42%;
+  perspective: 1000px;
+}
+.quest-node.right .quest-card-wrapper {
+  text-align: left;
+}
+
+.quest-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+  position: relative;
+}
+.quest-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-md);
+}
+.quest-node.completed .quest-card {
+  border-color: rgba(16, 185, 129, 0.2);
+}
+.quest-node.active .quest-card {
+  border-color: var(--accent-primary);
+  box-shadow: 0 4px 20px var(--accent-primary-glow);
+}
+
+@keyframes pulseGlow {
+  0% { transform: translate(-50%, 0) scale(1); box-shadow: 0 0 5px var(--accent-primary-glow); }
+  100% { transform: translate(-50%, 0) scale(1.1); box-shadow: 0 0 18px var(--accent-primary-glow); }
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .roadmap-track, .roadmap-track-fill {
+    left: 24px;
+    transform: none;
+  }
+  .quest-node-bubble {
+    left: 24px;
+    transform: translate(-50%, 0);
+  }
+  .quest-card-wrapper {
+    width: calc(100% - 48px);
+    margin-left: auto;
+  }
+  .quest-node.right {
+    justify-content: flex-start;
+  }
+}

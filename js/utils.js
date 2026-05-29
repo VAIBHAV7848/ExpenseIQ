@@ -223,11 +223,23 @@ const Utils = {
     return days[new Date(dateStr).getDay()];
   },
 
-  // Elite Liquid Glass Confetti burst
+  // Elite Liquid Glass Confetti burst (optimized canvas version - 120 FPS lag-free)
   triggerConfetti() {
-    const container = document.createElement('div');
-    container.style.cssText = 'position:fixed; inset:0; pointer-events:none; z-index:999999; overflow:hidden;';
-    document.body.appendChild(container);
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'position:fixed; inset:0; pointer-events:none; z-index:999999;';
+    document.body.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+
+    const resize = () => {
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.scale(dpr, dpr);
+    };
+    resize();
 
     const colors = [
       'rgba(99, 102, 241, 0.45)',  // Indigo
@@ -239,51 +251,42 @@ const Utils = {
 
     const particleCount = 80;
     const particles = [];
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
 
     for (let i = 0; i < particleCount; i++) {
-      const p = document.createElement('div');
-      const size = Math.random() * 8 + 6;
-      p.style.cssText = `
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: ${size}px;
-        height: ${size * (Math.random() > 0.5 ? 1.5 : 1)}px;
-        background: ${colors[Math.floor(Math.random() * colors.length)]};
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: ${Math.random() > 0.7 ? '50%' : '3px'};
-        backdrop-filter: blur(1px);
-        -webkit-backdrop-filter: blur(1px);
-        transform: translate3d(0, 0, 0) rotate(0deg);
-        will-change: transform, opacity;
-      `;
-      container.appendChild(p);
-
       const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 20 + 8;
-      
+      const speed = Math.random() * 16 + 6;
+      const sizeW = Math.random() * 8 + 6;
+      const sizeH = sizeW * (Math.random() > 0.5 ? 1.5 : 1);
+
       particles.push({
-        el: p,
-        x: 0,
-        y: 0,
+        x: centerX,
+        y: centerY,
+        w: sizeW,
+        h: sizeH,
+        color: colors[Math.floor(Math.random() * colors.length)],
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 10, // Burst upwards
-        rotation: Math.random() * 360,
-        vRotation: Math.random() * 10 - 5,
-        opacity: 1
+        vy: Math.sin(angle) * speed - 10,
+        rotation: Math.random() * Math.PI * 2,
+        vRotation: Math.random() * 0.2 - 0.1,
+        opacity: 1,
+        shape: Math.random() > 0.7 ? 'circle' : 'rect'
       });
     }
 
-    const gravity = 0.65;
+    const gravity = 0.55;
     const drag = 0.96;
     const startTime = performance.now();
 
     const update = (now) => {
       const elapsed = now - startTime;
       if (elapsed > 1800) {
-        container.remove();
+        canvas.remove();
         return;
       }
+
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
       particles.forEach(p => {
         p.vy += gravity;
@@ -297,13 +300,80 @@ const Utils = {
           p.opacity = Math.max(0, 1 - (elapsed - 1000) / 800);
         }
 
-        p.el.style.transform = `translate3d(calc(-50% + ${p.x}px), calc(-50% + ${p.y}px), 0) rotate(${p.rotation}deg)`;
-        p.el.style.opacity = p.opacity;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        
+        ctx.globalAlpha = p.opacity;
+        ctx.fillStyle = p.color;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1;
+
+        ctx.beginPath();
+        if (p.shape === 'circle') {
+          ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2);
+        } else {
+          ctx.rect(-p.w / 2, -p.h / 2, p.w, p.h);
+        }
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
       });
 
       requestAnimationFrame(update);
     };
 
     requestAnimationFrame(update);
+  },
+
+  // Dynamic Ambient Aurora Preset configurations
+  AuroraPresets: {
+    cyberpunk: {
+      name: 'Midnight Cyberpunk',
+      color1: 'rgba(99, 102, 241, 0.16)', // Indigo
+      color2: 'rgba(6, 182, 212, 0.14)', // Cyan
+      lightColor1: 'rgba(99, 102, 241, 0.08)',
+      lightColor2: 'rgba(6, 182, 212, 0.06)'
+    },
+    aurora: {
+      name: 'Quartz Aurora',
+      color1: 'rgba(139, 92, 246, 0.15)', // Violet
+      color2: 'rgba(236, 72, 153, 0.12)', // Pink
+      lightColor1: 'rgba(139, 92, 246, 0.07)',
+      lightColor2: 'rgba(236, 72, 153, 0.05)'
+    },
+    boreal: {
+      name: 'Northern Lights',
+      color1: 'rgba(16, 185, 129, 0.15)', // Emerald
+      color2: 'rgba(59, 130, 246, 0.12)', // Cobalt Blue
+      lightColor1: 'rgba(16, 185, 129, 0.06)',
+      lightColor2: 'rgba(59, 130, 246, 0.05)'
+    },
+    solar: {
+      name: 'Solar Flame',
+      color1: 'rgba(245, 158, 11, 0.15)', // Amber Gold
+      color2: 'rgba(244, 63, 94, 0.12)', // Crimson Red
+      lightColor1: 'rgba(245, 158, 11, 0.06)',
+      lightColor2: 'rgba(244, 63, 94, 0.05)'
+    },
+    quartz: {
+      name: 'Ivory Quartz',
+      color1: 'rgba(148, 163, 184, 0.12)', // Muted Slate
+      color2: 'rgba(203, 213, 225, 0.09)',
+      lightColor1: 'rgba(148, 163, 184, 0.04)',
+      lightColor2: 'rgba(203, 213, 225, 0.03)'
+    }
+  },
+
+  applyAuroraPreset(presetKey) {
+    const key = presetKey || localStorage.getItem('expenseiq_aurora') || 'cyberpunk';
+    const p = this.AuroraPresets[key] || this.AuroraPresets.cyberpunk;
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const c1 = isDark ? p.color1 : p.lightColor1;
+    const c2 = isDark ? p.color2 : p.lightColor2;
+    
+    document.documentElement.style.setProperty('--glow-color-1', c1);
+    document.documentElement.style.setProperty('--glow-color-2', c2);
+    localStorage.setItem('expenseiq_aurora', key);
   }
 };

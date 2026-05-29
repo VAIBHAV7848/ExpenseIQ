@@ -6,12 +6,13 @@ const App = {
   async init() {
     console.log('%c ExpenseIQ v2.0 ', 'background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-size: 16px; padding: 8px 16px; border-radius: 8px; font-weight: bold;');
 
-    // 1. Apply theme
+    // 1. Apply theme & Ambient Aurora
     const savedTheme = localStorage.getItem('expenseiq_settings');
     try {
       const s = JSON.parse(savedTheme);
       if (s?.theme) document.documentElement.setAttribute('data-theme', s.theme);
     } catch (e) { /* Use default dark */ }
+    try { Utils.applyAuroraPreset(); } catch (e) { console.warn('Aurora loading failed:', e); }
 
     // 2. Init Auth
     await Auth.init();
@@ -74,9 +75,10 @@ const App = {
   },
 
   _setupGlobalEvents() {
-    // Re-render charts on theme change
+    // Re-render charts & active aurora on theme change
     EventBus.on('theme:changed', () => {
       if (typeof Charts !== 'undefined') Charts.updateAllThemes();
+      try { Utils.applyAuroraPreset(); } catch (e) {}
     });
 
     // Refresh current page on major data changes
