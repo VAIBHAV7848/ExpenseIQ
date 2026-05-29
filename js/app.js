@@ -84,7 +84,51 @@ const App = {
     // Refresh current page on major data changes
     EventBus.on('transaction:added', (txn) => {
       const alerts = Store.checkBudgetAlerts(txn);
-      alerts.forEach(a => Toast[a.type === 'error' ? 'error' : 'warning'](a.title, a.message));
+      
+      let breached = false;
+      let breachMsg = '';
+
+      alerts.forEach(a => {
+        Toast[a.type === 'error' ? 'error' : 'warning'](a.title, a.message);
+        if (a.type === 'error') {
+          breached = true;
+          breachMsg = a.message;
+        }
+      });
+
+      if (breached) {
+        // 1. Trigger beautiful visual warning Modal alert dialog on screen
+        Modal.show({
+          title: '⚠️ Critical Budget Breach!',
+          class: 'modal-warning',
+          content: `
+            <div style="text-align: center; padding: 12px 0;">
+              <div style="font-size: 54px; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.4));">🚨</div>
+              <h3 style="font-size: 18px; font-weight: 800; color: var(--color-expense); margin-bottom: 8px;">Budget Exceeded!</h3>
+              <p style="color: var(--text-primary); font-weight: 600; line-height: 1.5; margin-bottom: 12px; font-size: 14px;">
+                ${breachMsg}
+              </p>
+              <div style="background: var(--bg-tertiary); border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 14px;">
+                <i data-lucide="smartphone" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px; color: var(--accent-primary);"></i>
+                A real-time SMS warning has been dispatched to your mobile number via our Twilio gateway.
+              </div>
+            </div>
+          `,
+          buttons: [
+            { id: 'btn-close-warning', class: 'btn-secondary', text: 'Acknowledge Alert' }
+          ],
+          onRender: (el) => {
+            if (window.lucide) lucide.createIcons();
+            document.getElementById('btn-close-warning').addEventListener('click', () => Modal.close());
+          }
+        });
+
+        // 2. Dispatch real Twilio SMS alert immediately
+        if (typeof SMS !== 'undefined') {
+          const smsText = `ExpenseIQ ALERT: Budget Breached! ${breachMsg}. Please audit your pending ledgers immediately. - ExpenseIQ`;
+          SMS.sendBudgetAlert(smsText);
+        }
+      }
 
       // Dynamic Glass Confetti Celebration!
       try { Utils.triggerConfetti(); } catch (e) { console.warn('Confetti burst failed:', e); }

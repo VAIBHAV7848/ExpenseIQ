@@ -28,7 +28,8 @@ export default async function handler(req, res) {
     formatted_time,
     description,
     balance,
-    account_label
+    account_label,
+    custom_message
   } = req.body;
 
   if (!phone_number) {
@@ -53,7 +54,7 @@ export default async function handler(req, res) {
     const note = description ? ` Info: ${description}` : '';
     const cat = category ? ` Ref: ${category}` : '';
 
-    const message = `ExpenseIQ Alert: A/c ${label} ${action} for ₹${amount} on ${timeStr}.${cat}.${note} Avl Bal: ₹${balance}. - ExpenseIQ`;
+    const message = custom_message || `ExpenseIQ Alert: A/c ${label} ${action} for ₹${amount} on ${timeStr}.${cat}.${note} Avl Bal: ₹${balance}. - ExpenseIQ`;
 
     // Twilio Endpoint Configuration
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;

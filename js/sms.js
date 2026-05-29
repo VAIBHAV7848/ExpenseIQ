@@ -103,5 +103,51 @@ const SMS = {
         Store._logActivity('SMS Notification Failed: ' + errMsg);
       }
     }
+  },
+
+  /**
+   * Sends a custom critical budget breach alert SMS via Twilio endpoint.
+   */
+  async sendBudgetAlert(messageText) {
+    const isGuest = Auth.isGuest();
+    const user = Auth.getUser();
+    const settings = Store.getSettings();
+    
+    let phoneNumber = isGuest ? settings.profile?.phoneNumber : user?.user_metadata?.phone_number;
+    if (!phoneNumber) {
+      console.warn('SMS Service: [ABORT] No phone number registered to receive budget breach alert.');
+      return;
+    }
+
+    phoneNumber = phoneNumber.trim();
+    if (!phoneNumber.startsWith('+')) {
+      phoneNumber = '+' + phoneNumber;
+    }
+
+    const payload = {
+      phone_number: phoneNumber,
+      custom_message: messageText
+    };
+
+    try {
+      console.log('SMS Service: Dispatching critical budget breach SMS alert...');
+      const response = await fetch('/api/send-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        console.log('SMS Service: [SUCCESS] Breach SMS sent. SID:', data.sid);
+        if (Store && Store._logActivity) {
+          Store._logActivity('SMS Breach Alert Sent: ' + messageText);
+        }
+      } else {
+        console.error('SMS Service: [ERROR] Twilio gateway error:', data.error || 'Unknown error');
+      }
+    } catch (err) {
+      console.error('SMS Service: [FETCH_FAILED]', err);
+    }
   }
 };
