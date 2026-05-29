@@ -330,38 +330,38 @@ const Utils = {
   AuroraPresets: {
     cyberpunk: {
       name: 'Midnight Cyberpunk',
-      color1: 'rgba(99, 102, 241, 0.16)', // Indigo
-      color2: 'rgba(6, 182, 212, 0.14)', // Cyan
-      lightColor1: 'rgba(99, 102, 241, 0.08)',
-      lightColor2: 'rgba(6, 182, 212, 0.06)'
+      color1: 'rgba(99, 102, 241, 0.35)', // Indigo
+      color2: 'rgba(6, 182, 212, 0.30)', // Cyan
+      lightColor1: 'rgba(99, 102, 241, 0.15)',
+      lightColor2: 'rgba(6, 182, 212, 0.12)'
     },
     aurora: {
       name: 'Quartz Aurora',
-      color1: 'rgba(139, 92, 246, 0.15)', // Violet
-      color2: 'rgba(236, 72, 153, 0.12)', // Pink
-      lightColor1: 'rgba(139, 92, 246, 0.07)',
-      lightColor2: 'rgba(236, 72, 153, 0.05)'
+      color1: 'rgba(139, 92, 246, 0.32)', // Violet
+      color2: 'rgba(236, 72, 153, 0.28)', // Pink
+      lightColor1: 'rgba(139, 92, 246, 0.15)',
+      lightColor2: 'rgba(236, 72, 153, 0.12)'
     },
     boreal: {
       name: 'Northern Lights',
-      color1: 'rgba(16, 185, 129, 0.15)', // Emerald
-      color2: 'rgba(59, 130, 246, 0.12)', // Cobalt Blue
-      lightColor1: 'rgba(16, 185, 129, 0.06)',
-      lightColor2: 'rgba(59, 130, 246, 0.05)'
+      color1: 'rgba(16, 185, 129, 0.32)', // Emerald
+      color2: 'rgba(59, 130, 246, 0.28)', // Cobalt Blue
+      lightColor1: 'rgba(16, 185, 129, 0.15)',
+      lightColor2: 'rgba(59, 130, 246, 0.12)'
     },
     solar: {
       name: 'Solar Flame',
-      color1: 'rgba(245, 158, 11, 0.15)', // Amber Gold
-      color2: 'rgba(244, 63, 94, 0.12)', // Crimson Red
-      lightColor1: 'rgba(245, 158, 11, 0.06)',
-      lightColor2: 'rgba(244, 63, 94, 0.05)'
+      color1: 'rgba(245, 158, 11, 0.32)', // Amber Gold
+      color2: 'rgba(244, 63, 94, 0.28)', // Crimson Red
+      lightColor1: 'rgba(245, 158, 11, 0.15)',
+      lightColor2: 'rgba(244, 63, 94, 0.12)'
     },
     quartz: {
       name: 'Ivory Quartz',
-      color1: 'rgba(148, 163, 184, 0.12)', // Muted Slate
-      color2: 'rgba(203, 213, 225, 0.09)',
-      lightColor1: 'rgba(148, 163, 184, 0.04)',
-      lightColor2: 'rgba(203, 213, 225, 0.03)'
+      color1: 'rgba(148, 163, 184, 0.22)', // Muted Slate
+      color2: 'rgba(203, 213, 225, 0.18)',
+      lightColor1: 'rgba(148, 163, 184, 0.10)',
+      lightColor2: 'rgba(203, 213, 225, 0.08)'
     }
   },
 
