@@ -98,75 +98,6 @@ const Dashboard = {
         </div>
       </div>
 
-      <!-- Gorgeous 3D-Tilting Credit Card Deck -->
-      <div class="glass-wallet-deck animate-fade-in-up" style="animation-delay:50ms; margin-bottom: 32px;">
-        <div class="glass-wallet-card-wrapper">
-          <div class="glass-wallet-card regalia" id="card-regalia">
-            <div class="card-shine"></div>
-            <div class="glass-wallet-card-header">
-              <span style="font-size: 11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Gold Net Worth</span>
-              <div class="card-emv-chip"></div>
-            </div>
-            <div class="glass-wallet-card-balance">
-              <div style="font-size: 10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:2px; letter-spacing:0.5px;">Net Worth Pool</div>
-              <div style="font-size: 26px; font-weight:800; color:var(--text-primary);" id="card-bal-val">₹0</div>
-            </div>
-            <div class="glass-wallet-card-number">•••• •••• •••• 7848</div>
-            <div class="glass-wallet-card-footer">
-              <div>
-                <div style="font-size: 9px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Card Holder</div>
-                <div style="font-size: 12px; font-weight:800; color:var(--text-primary);">${userName}</div>
-              </div>
-              <div style="font-size: 12px; font-weight:800; color:var(--text-primary); font-family:var(--font-mono);">05/30</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="glass-wallet-card-wrapper">
-          <div class="glass-wallet-card coral" id="card-coral">
-            <div class="card-shine"></div>
-            <div class="glass-wallet-card-header">
-              <span style="font-size: 11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Inflow Premium</span>
-              <div class="card-emv-chip"></div>
-            </div>
-            <div class="glass-wallet-card-balance">
-              <div style="font-size: 10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:2px; letter-spacing:0.5px;">Monthly Inflow</div>
-              <div style="font-size: 26px; font-weight:800; color:var(--text-primary);" id="card-inc-val">₹0</div>
-            </div>
-            <div class="glass-wallet-card-number">•••• •••• •••• 1968</div>
-            <div class="glass-wallet-card-footer">
-              <div>
-                <div style="font-size: 9px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Card Holder</div>
-                <div style="font-size: 12px; font-weight:800; color:var(--text-primary);">${userName}</div>
-              </div>
-              <div style="font-size: 12px; font-weight:800; color:var(--text-primary); font-family:var(--font-mono);">12/29</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="glass-wallet-card-wrapper">
-          <div class="glass-wallet-card antigravity" id="card-antigravity">
-            <div class="card-shine"></div>
-            <div class="glass-wallet-card-header">
-              <span style="font-size: 11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px;">Antigravity Cash</span>
-              <div class="card-emv-chip"></div>
-            </div>
-            <div class="glass-wallet-card-balance">
-              <div style="font-size: 10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:2px; letter-spacing:0.5px;">Outflow Monthly</div>
-              <div style="font-size: 26px; font-weight:800; color:var(--text-primary);" id="card-exp-val">₹0</div>
-            </div>
-            <div class="glass-wallet-card-number">•••• •••• •••• 9999</div>
-            <div class="glass-wallet-card-footer">
-              <div>
-                <div style="font-size: 9px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Card Holder</div>
-                <div style="font-size: 12px; font-weight:800; color:var(--text-primary);">${userName}</div>
-              </div>
-              <div style="font-size: 12px; font-weight:800; color:var(--text-primary); font-family:var(--font-mono);">08/32</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="dashboard-stats stagger-children" id="dash-stats">
         <div class="stat-card balance glow-on-hover" style="border-radius: var(--radius-xl);">
           <div class="stat-card-top">
@@ -314,35 +245,6 @@ const Dashboard = {
     Utils.animateCounter(document.getElementById('st-inc'), totals.income);
     Utils.animateCounter(document.getElementById('st-exp'), totals.expense);
     this._animateSavRate(document.getElementById('st-sav'), savRate);
-
-    // Animate credit card values
-    Utils.animateCounter(document.getElementById('card-bal-val'), balanceAll);
-    Utils.animateCounter(document.getElementById('card-inc-val'), totals.income);
-    Utils.animateCounter(document.getElementById('card-exp-val'), totals.expense);
-
-    // 3D Credit Card interactive tilt animation physics
-    document.querySelectorAll('.glass-wallet-card').forEach(card => {
-      card.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const px = x / rect.width;
-        const py = y / rect.height;
-        
-        const tiltX = (0.5 - py) * 20; 
-        const tiltY = (px - 0.5) * 20;
-        
-        card.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(1.025)`;
-        card.style.setProperty('--x', `${px * 100}%`);
-        card.style.setProperty('--y', `${py * 100}%`);
-      });
-      
-      card.addEventListener('mouseleave', () => {
-        card.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
-        card.style.setProperty('--x', '50%');
-        card.style.setProperty('--y', '50%');
-      });
-    });
 
     this.renderCharts();
     this.renderRecentTransactions();
