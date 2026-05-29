@@ -36,6 +36,22 @@ const Reports = {
         </div>
       </div>
 
+      <!-- Gorgeous Animated Cashflow Sankey Stream -->
+      <div class="sankey-card animate-fade-in-up" style="animation-delay: 100ms;">
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px;">
+          <h3 class="card-title" style="font-weight: 800; display:flex; align-items:center; gap: 8px; margin: 0;">
+            <span style="display:inline-flex; align-items:center; justify-content:center; background: var(--accent-primary-glow); padding: 6px; border-radius: 8px; color: var(--accent-primary);">
+              <i data-lucide="git-fork" style="width: 16px; height: 16px;"></i>
+            </span>
+            Real-Time Cashflow Streams
+          </h3>
+          <span style="font-size: 10px; background: var(--bg-tertiary); color: var(--text-secondary); padding: 4px 8px; border-radius: 6px; font-weight: 700;">Live Flow Chart</span>
+        </div>
+        <div class="sankey-container" id="sankey-flow-wrapper">
+          <!-- SVG and nodes injected dynamically by renderSankey() -->
+        </div>
+      </div>
+
       <div class="reports-grid stagger-children" id="rep-charts-top">
         <div class="chart-card">
           <div class="card-header"><h3 class="card-title">Income vs Expense</h3></div>
@@ -234,6 +250,145 @@ const Reports = {
     }).filter(c => c.amount > 0).sort((a,b) => b.amount - a.amount);
     
     Charts.createDonutChart('repDonutChart', catArray.map(c=>c.name), catArray.map(c=>c.amount), catArray.map(c=>c.color));
+    
+    this.renderSankey();
+  },
+
+  renderSankey() {
+    const wrapper = document.getElementById('sankey-flow-wrapper');
+    if (!wrapper) return;
+
+    let totals, byCat;
+    if (this.viewType === 'monthly') {
+      totals = Store.getTotals(this.currentMonth);
+      byCat = Store.getByCategory(this.currentMonth);
+    } else {
+      const year = this.currentMonth.split('-')[0];
+      const allTxns = Store.getTransactions({ startDate: `${year}-01-01`, endDate: `${year}-12-31` });
+      let totInc = 0, totExp = 0, cats = {};
+      allTxns.forEach(t => {
+        if (t.type === 'income') totInc += t.amount;
+        else totExp += t.amount;
+        if (t.type === 'expense') {
+          if(!cats[t.category]) cats[t.category] = { expense: 0 };
+          cats[t.category].expense += t.amount;
+        }
+      });
+      totals = { income: totInc, expense: totExp, balance: totInc - totExp };
+      byCat = cats;
+    }
+
+    const inflow = totals.income || 0;
+    const outflow = totals.expense || 0;
+    const netBal = Math.max(0, totals.balance || 0);
+
+    // Get categories array
+    const catArray = Object.entries(byCat).map(([id, data]) => {
+      const cat = Store.getCategory(id);
+      return { id, name: cat ? cat.name : 'Unknown', color: cat ? cat.color : '#cbd5e1', amount: data.expense };
+    }).filter(c => c.amount > 0).sort((a,b) => b.amount - a.amount).slice(0, 3); // top 3
+
+    // Build Sankey Nodes coordinates in percentage units (for responsive absolute positioning)
+    const nodes = [];
+    const links = [];
+
+    // Col 1 (Sources): Inflow
+    nodes.push({ id: 'inflow', title: 'Inflow Pool', value: inflow, color: 'var(--color-income)', x: 5, y: 50 });
+
+    // Col 2 (Pools): Net Balance & Total Outflow
+    nodes.push({ id: 'net_bal', title: 'Net Savings', value: netBal, color: 'var(--accent-primary)', x: 35, y: 25 });
+    nodes.push({ id: 'outflow', title: 'Total Outflow', value: outflow, color: 'var(--color-expense)', x: 35, y: 75 });
+
+    // Col 3 (Channels): Top 3 Category spendings
+    catArray.forEach((cat, idx) => {
+      const yVal = catArray.length === 1 ? 75 : catArray.length === 2 ? 65 + idx * 20 : 55 + idx * 18;
+      nodes.push({ id: `cat_${cat.id}`, title: cat.name, value: cat.amount, color: cat.color, x: 68, y: yVal });
+    });
+
+    // Col 4 (Targets): Savings Quests
+    nodes.push({ id: 'savings_quest', title: 'Savings Quests', value: netBal, color: 'var(--color-warning)', x: 95, y: 25 });
+
+    // Build connections
+    const totalFlow = Math.max(inflow, outflow + netBal, 1);
+
+    if (inflow > 0) {
+      // Inflow -> Net Savings
+      if (netBal > 0) {
+        links.push({ from: 'inflow', to: 'net_bal', val: netBal, color: 'var(--accent-primary)' });
+      }
+      // Inflow -> Total Outflow
+      if (outflow > 0) {
+        links.push({ from: 'inflow', to: 'outflow', val: outflow, color: 'var(--color-expense)' });
+      }
+    }
+
+    // Total Outflow -> Categories
+    if (outflow > 0) {
+      catArray.forEach(cat => {
+        links.push({ from: 'outflow', to: `cat_${cat.id}`, val: cat.amount, color: cat.color });
+      });
+    }
+
+    // Net Savings -> Savings Quests
+    if (netBal > 0) {
+      links.push({ from: 'net_bal', to: 'savings_quest', val: netBal, color: 'var(--color-warning)' });
+    }
+
+    // Render nodes HTML + Bezier links SVG
+    let svgHtml = `<svg class="sankey-svg" id="sankey-svg-canvas">`;
+    let nodesHtml = '';
+
+    // Calculate node coordinates in SVG space (1000 x 280)
+    const svgWidth = 1000;
+    const svgHeight = 280;
+
+    const getNodeCoords = (nodeId) => {
+      const n = nodes.find(item => item.id === nodeId);
+      if (!n) return { x: 0, y: 0 };
+      return {
+        x: (n.x / 100) * svgWidth,
+        y: (n.y / 100) * svgHeight
+      };
+    };
+
+    // Render Link Paths
+    links.forEach((link, idx) => {
+      const start = getNodeCoords(link.from);
+      const end = getNodeCoords(link.to);
+      
+      const x1 = start.x + 55; // right edge of source box
+      const y1 = start.y;
+      const x2 = end.x - 55;  // left edge of target box
+      const y2 = end.y;
+
+      const pathStr = `M ${x1} ${y1} C ${(x1 + x2) / 2} ${y1}, ${(x1 + x2) / 2} ${y2}, ${x2} ${y2}`;
+      const strokeWidth = Math.max(2, Math.min(24, (link.val / totalFlow) * 35));
+
+      // Bezier Link path with dynamic animated dash thread
+      svgHtml += `
+        <!-- Thicker flow connection line -->
+        <path d="${pathStr}" class="sankey-link" stroke="${link.color}" stroke-width="${strokeWidth}" fill="none" />
+        
+        <!-- Glowing animated stream overlay -->
+        <path d="${pathStr}" stroke="${link.color}" stroke-width="2.5" stroke-dasharray="10 18" fill="none" opacity="0.8" style="filter: drop-shadow(0 0 4px ${link.color});">
+          <animate attributeName="stroke-dashoffset" values="100;0" dur="2.5s" repeatCount="indefinite" />
+        </path>
+      `;
+    });
+
+    svgHtml += `</svg>`;
+
+    // Render nodes CSS absolute positions
+    nodes.forEach(n => {
+      nodesHtml += `
+        <div class="sankey-node" style="left: ${n.x}%; top: ${n.y}%; border-left: 4px solid ${n.color};">
+          <div class="sankey-node-title">${n.title}</div>
+          <div class="sankey-node-value">${Utils.formatCurrency(n.value)}</div>
+        </div>
+      `;
+    });
+
+    wrapper.innerHTML = svgHtml + nodesHtml;
   },
 
   renderMonthlyCharts() {
