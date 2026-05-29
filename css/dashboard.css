@@ -211,3 +211,69 @@
   .stat-card-amount { font-size: 24px; }
   .dashboard-health-row { gap: 16px; }
 }
+
+/* Glassmorphic Liquid Sphere Wave Gauge */
+.liquid-sphere {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 3px solid var(--glass-border);
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 6px 14px rgba(0,0,0,0.1), var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+
+.liquid-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(180deg, var(--wave-color) 0%, rgba(99, 102, 241, 0.8) 100%);
+  transition: height 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.liquid-wave {
+  position: absolute;
+  bottom: 100%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: var(--bg-secondary);
+  border-radius: 38%;
+  animation: slosh 8s infinite linear;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.liquid-wave-back {
+  position: absolute;
+  bottom: 100%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: var(--bg-primary);
+  border-radius: 43%;
+  animation: slosh 12s infinite linear reverse;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.liquid-score-value {
+  position: relative;
+  z-index: 10;
+  font-family: var(--font-primary);
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--text-primary);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes slosh {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

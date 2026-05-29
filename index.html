@@ -65,6 +65,18 @@
   <!-- Confirm Dialog -->
   <div id="confirm-dialog" class="confirm-overlay hidden"></div>
 
+  <!-- Spotlight Command Center -->
+  <div id="command-center" class="command-center">
+    <div class="command-center-modal">
+      <div class="command-search-wrap">
+        <i data-lucide="search" class="command-search-icon"></i>
+        <input type="text" id="command-search-input" placeholder="Type a command or search..." autocomplete="off">
+        <kbd class="command-esc-tag">ESC</kbd>
+      </div>
+      <div id="command-results" class="command-results"></div>
+    </div>
+  </div>
+
   <!-- External Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -108,6 +120,7 @@
   <script src="js/components/sidebar.js"></script>
   <script src="js/components/header.js"></script>
   <script src="js/components/aiChat.js"></script>
+  <script src="js/components/commandCenter.js"></script>
 
   <script src="js/push.js"></script>
   <script src="js/sms.js"></script>

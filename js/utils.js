@@ -221,5 +221,89 @@ const Utils = {
   getWeekday(dateStr) {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return days[new Date(dateStr).getDay()];
+  },
+
+  // Elite Liquid Glass Confetti burst
+  triggerConfetti() {
+    const container = document.createElement('div');
+    container.style.cssText = 'position:fixed; inset:0; pointer-events:none; z-index:999999; overflow:hidden;';
+    document.body.appendChild(container);
+
+    const colors = [
+      'rgba(99, 102, 241, 0.45)',  // Indigo
+      'rgba(14, 165, 233, 0.45)',  // Sky Blue
+      'rgba(139, 92, 246, 0.45)',  // Violet
+      'rgba(16, 185, 129, 0.45)',  // Emerald
+      'rgba(245, 158, 11, 0.45)'   // Gold
+    ];
+
+    const particleCount = 80;
+    const particles = [];
+
+    for (let i = 0; i < particleCount; i++) {
+      const p = document.createElement('div');
+      const size = Math.random() * 8 + 6;
+      p.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: ${size}px;
+        height: ${size * (Math.random() > 0.5 ? 1.5 : 1)}px;
+        background: ${colors[Math.floor(Math.random() * colors.length)]};
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: ${Math.random() > 0.7 ? '50%' : '3px'};
+        backdrop-filter: blur(1px);
+        -webkit-backdrop-filter: blur(1px);
+        transform: translate3d(0, 0, 0) rotate(0deg);
+        will-change: transform, opacity;
+      `;
+      container.appendChild(p);
+
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 20 + 8;
+      
+      particles.push({
+        el: p,
+        x: 0,
+        y: 0,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 10, // Burst upwards
+        rotation: Math.random() * 360,
+        vRotation: Math.random() * 10 - 5,
+        opacity: 1
+      });
+    }
+
+    const gravity = 0.65;
+    const drag = 0.96;
+    const startTime = performance.now();
+
+    const update = (now) => {
+      const elapsed = now - startTime;
+      if (elapsed > 1800) {
+        container.remove();
+        return;
+      }
+
+      particles.forEach(p => {
+        p.vy += gravity;
+        p.vx *= drag;
+        p.vy *= drag;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rotation += p.vRotation;
+
+        if (elapsed > 1000) {
+          p.opacity = Math.max(0, 1 - (elapsed - 1000) / 800);
+        }
+
+        p.el.style.transform = `translate3d(calc(-50% + ${p.x}px), calc(-50% + ${p.y}px), 0) rotate(${p.rotation}deg)`;
+        p.el.style.opacity = p.opacity;
+      });
+
+      requestAnimationFrame(update);
+    };
+
+    requestAnimationFrame(update);
   }
 };

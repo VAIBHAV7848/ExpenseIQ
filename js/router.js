@@ -72,6 +72,19 @@ const Router = {
     content.classList.remove('page-enter');
     content.classList.add('page-exit');
 
+    // Show premium shimmering skeleton loader instantly during transit phase
+    content.innerHTML = `
+      <div class="skeleton-shimmer-wrapper">
+        <div class="skeleton-header-shimmer"></div>
+        <div class="skeleton-grid-shimmer">
+          <div class="skeleton-card-shimmer"></div>
+          <div class="skeleton-card-shimmer"></div>
+          <div class="skeleton-card-shimmer"></div>
+        </div>
+        <div class="skeleton-body-shimmer"></div>
+      </div>
+    `;
+
     setTimeout(() => {
       this.currentRoute = hash;
       handler();

@@ -68,6 +68,9 @@ const App = {
 
     // 14. Init Modals
     Modal.init();
+
+    // 15. Init Spotlight Command Center
+    try { CommandCenter.init(); } catch (e) { console.warn('CommandCenter init skipped:', e); }
   },
 
   _setupGlobalEvents() {
@@ -80,6 +83,9 @@ const App = {
     EventBus.on('transaction:added', (txn) => {
       const alerts = Store.checkBudgetAlerts(txn);
       alerts.forEach(a => Toast[a.type === 'error' ? 'error' : 'warning'](a.title, a.message));
+
+      // Dynamic Glass Confetti Celebration!
+      try { Utils.triggerConfetti(); } catch (e) { console.warn('Confetti burst failed:', e); }
     });
   },
 

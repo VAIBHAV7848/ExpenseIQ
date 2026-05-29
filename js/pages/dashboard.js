@@ -171,13 +171,12 @@ const Dashboard = {
       <!-- Financial Health Score & Dynamic AI Insights Card -->
       <div class="dashboard-health-row animate-fade-in-up" style="animation-delay:100ms; margin-bottom: 32px;">
         <div class="health-score-card" style="border-radius: var(--radius-xl); padding: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-          <div class="health-gauge" style="position: relative; width: 140px; height: 75px; margin-bottom: 12px;">
-            <svg viewBox="0 0 120 65" class="health-svg" style="width: 100%; height: 100%;">
-              <path d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke="var(--bg-tertiary)" stroke-width="11" stroke-linecap="round"/>
-              <path d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke="${healthColor}" stroke-width="11" stroke-linecap="round"
-                stroke-dasharray="${healthScore * 1.57} 157" class="health-arc" style="transition: stroke-dasharray 1s ease-in-out; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.06));"/>
-            </svg>
-            <div class="health-score-value" style="font-family: var(--font-primary); font-size: 32px; font-weight: 900; bottom: 0;">${healthScore}</div>
+          <div class="liquid-sphere">
+            <div class="liquid-fill" style="height: ${healthScore}%; --wave-color: ${healthColor};">
+              <div class="liquid-wave"></div>
+              <div class="liquid-wave-back"></div>
+            </div>
+            <div class="liquid-score-value">${healthScore}</div>
           </div>
           <div class="health-label" style="color:${healthColor}; font-size: 16px; font-weight: 900; letter-spacing: -0.3px; margin-top: 4px;">${healthLabel}</div>
           <div class="health-sublabel" style="font-size: 10px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px;">Financial Health Index</div>
