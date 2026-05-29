@@ -47,17 +47,39 @@ const SMS = {
       account_label: accountLabel
     };
 
-    // 3. Invoke Supabase Edge Function
+    // 3. Dispatch SMS Notification
     try {
       console.log('SMS Service: Sending notification for transaction', txn.id);
       
-      const { data, error } = await supabaseClient.functions.invoke('send-sms', {
-        body: payload
-      });
+      let data, error;
+      const useProxy = window.CONFIG && CONFIG.USE_SERVER_PROXY;
+
+      if (useProxy) {
+        console.log('SMS Service: Dispatching via secure Vercel Node.js gateway...');
+        const response = await fetch('/api/send-sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errRes = await response.json();
+          error = errRes;
+        } else {
+          data = await response.json();
+        }
+      } else {
+        console.log('SMS Service: Dispatching via Supabase Edge Function...');
+        const result = await supabaseClient.functions.invoke('send-sms', {
+          body: payload
+        });
+        data = result.data;
+        error = result.error;
+      }
 
       if (error) {
-        console.error('SMS Service: [EDGE_FUNC_ERROR]', error);
-        throw error;
+        console.error('SMS Service: [ERROR]', error);
+        throw new Error(error.detail || error.error || 'Server error');
       }
 
       if (data && data.success) {
