@@ -89,3 +89,4 @@ If you want to configure your own backend instead of Guest Mode:
 
 Developed primarily by **Group 7 (Web Technology Lab, 2nd Year CSE)**. 
 Designed as a capstone demonstration of utilizing advanced standard web APIs, responsive layout engineering, and distributed backend-as-a-service (BaaS) logic safely.
+
