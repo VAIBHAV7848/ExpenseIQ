@@ -1,8 +1,10 @@
 config.local.js
+config.js
 ExpenseIQ/
 node_modules/
 .env
 .env.local
+supabase/functions/.env
 .DS_Store
 *.log
 dist/
