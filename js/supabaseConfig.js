@@ -1,6 +1,6 @@
 /* ========================================
    ExpenseIQ — Supabase Configuration
-   Uses CONFIG object from config.js with hardcoded fallbacks
+   Uses CONFIG object from config.js without hardcoded fallbacks
    ======================================== */
 
 let supabaseAdmin = null;
